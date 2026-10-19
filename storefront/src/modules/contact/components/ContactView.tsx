@@ -278,14 +278,16 @@ export default function ContactView({ data }: ContactViewProps) {
                 </a>
 
                 <a
-                  href={`tel:${contactInfo.phoneSecondary}`}
-                  className="flex items-center justify-between p-3 rounded-xl border border-[var(--surface-border)] bg-[var(--bg-base)] hover:border-amber-500/40 transition"
+                  href={`https://wa.me/${contactInfo.whatsapp.replace(/\D/g, "")}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-between p-3 rounded-xl border border-[var(--surface-border)] bg-[var(--bg-base)] hover:border-emerald-500/40 transition"
                 >
                   <div>
-                    <div className="text-xs text-[var(--text-muted)]">Showroom & Garage</div>
-                    <div className="text-sm font-bold text-[var(--text-primary)]">{contactInfo.phoneSecondary}</div>
+                    <div className="text-xs text-[var(--text-muted)]">WhatsApp</div>
+                    <div className="text-sm font-bold text-[var(--text-primary)]">{contactInfo.whatsapp}</div>
                   </div>
-                  <span className="text-xs font-semibold text-amber-500">Call Now →</span>
+                  <span className="text-xs font-semibold text-emerald-500">Chat Now →</span>
                 </a>
               </div>
             </div>

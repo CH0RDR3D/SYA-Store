@@ -128,8 +128,8 @@ export default async function Footer() {
             <div className="space-y-2 text-xs text-[var(--text-secondary)]">
               <div className="flex items-center gap-2">
                 <Phone className="h-3.5 w-3.5 text-amber-500 shrink-0" />
-                <a href="tel:+260978883420" className="hover:text-amber-500 transition">
-                  +260-978-883-420
+                <a href="tel:+260976666611" className="hover:text-amber-500 transition">
+                  +260976666611
                 </a>
               </div>
               <div className="flex items-center gap-2">
@@ -138,9 +138,15 @@ export default async function Footer() {
                   info@syastore.com
                 </a>
               </div>
+              <div className="flex items-center gap-2">
+                <Mail className="h-3.5 w-3.5 text-amber-500 shrink-0" />
+                <a href="mailto:syageneraldealers@outlook.com" className="hover:text-amber-500 transition">
+                  syageneraldealers@outlook.com
+                </a>
+              </div>
               <div className="flex items-center gap-2 text-[11px] text-[var(--text-muted)] pt-1">
                 <Clock className="h-3.5 w-3.5 text-amber-500 shrink-0" />
-                <span>Mon - Sat: 08:00 - 18:00 CAT</span>
+                <span>Mon - Fri: 08:00 - 17:00 CAT</span>
               </div>
             </div>
           </div>

@@ -28,11 +28,53 @@ export default async function Home(props: {
 
   // Fetch categories, collections and products from Medusa backend
   const categories = await listCategories()
-  const { collections } = await listCollections({ limit: 20, fields: "*products" })
-  const { response: { products } } = await getProductsList({
-    countryCode,
-    queryParams: { limit: 100 },
+  const [{ collections }, { response: { products: generalProducts } }] =
+    await Promise.all([
+      listCollections({ limit: 20, fields: "*products" }),
+      getProductsList({
+        countryCode,
+        queryParams: { limit: 100 },
+      }),
+    ])
+
+  const normalizeCategory = (value?: string | null) =>
+    value?.toLowerCase().replace(/[^a-z0-9]/g, "") || ""
+  const featuredCategoryTerms = [
+    "health",
+    "beauty",
+    "wellness",
+    "skincare",
+    "cosmetics",
+    "personalcare",
+    "solar",
+    "renewable",
+    "green",
+    "greenenergy",
+    "cleanenergy",
+    "inverter",
+    "photovoltaic",
+    "offgrid",
+  ]
+  const spotlightCategories = categories.filter((category) => {
+    const categoryText = normalizeCategory(`${category.name} ${category.handle}`)
+    return featuredCategoryTerms.some((term) => categoryText.includes(term))
   })
+  const spotlightProductResults = await Promise.all(
+    spotlightCategories.map(({ id }) =>
+      getProductsList({
+        countryCode,
+        queryParams: { category_id: id, limit: 100 },
+      })
+    )
+  )
+  const products = Array.from(
+    new Map(
+      [
+        ...generalProducts,
+        ...spotlightProductResults.flatMap(({ response }) => response.products),
+      ].map((product) => [product.id, product])
+    ).values()
+  )
 
   // Dynamically fetch today's trending "Editor's Pick" products
   const editorsPickIds = await getDailyCuratedProductIds({
@@ -47,8 +89,8 @@ export default async function Home(props: {
 
   return (
     <CustomHomeLayout
-      categories={categories || []}
       collections={collections || []}
+      categories={categories || []}
       products={products || []}
       editorsPickProducts={editorsPickProducts}
       region={region}

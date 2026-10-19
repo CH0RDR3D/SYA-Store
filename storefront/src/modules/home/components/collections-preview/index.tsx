@@ -3,7 +3,7 @@
 import React, { useState, useMemo, useEffect, useRef, useCallback } from "react"
 import Link from "next/link"
 import Image from "next/image"
-import { HttpTypes } from "@medusajs/types"
+import type { HttpTypes } from "@medusajs/types"
 import { convertToLocale } from "@lib/util/money"
 
 interface CollectionsPreviewProps {
@@ -17,6 +17,7 @@ interface CollectionItemDisplay {
   id: string
   title: string
   handle: string
+  href?: string
   description?: string
   badgeText: string
   accentColor: "amber" | "emerald" | "cyan" | "violet"
@@ -269,7 +270,6 @@ export default function CollectionsPreview({
   // Build rich collection list with products mapped to each
   const displayCollections: CollectionItemDisplay[] = useMemo(() => {
     const list: CollectionItemDisplay[] = []
-
     const colorAccents: Array<"amber" | "emerald" | "cyan" | "violet"> = [
       "amber",
       "cyan",
@@ -277,56 +277,114 @@ export default function CollectionsPreview({
       "emerald",
     ]
 
-    if (collections && collections.length > 0) {
-      collections.forEach((col, idx) => {
-        // Strictly filter products that belong ONLY to this specific collection
-        const colProducts = products.filter(
-          (p) =>
-            p.collection_id === col.id ||
-            p.collection?.id === col.id ||
-            (col.handle && p.collection?.handle === col.handle) ||
-            (Array.isArray(col.products) && col.products.some((cp) => cp.id === p.id))
-        )
+    const normalize = (value?: string | null) =>
+      value?.toLowerCase().replace(/[^a-z0-9]/g, "") || ""
 
-        // Only include the collection if it actually has products belonging to it.
-        // Never backfill with products from other collections/categories.
-        if (colProducts.length > 0) {
-          list.push({
-            id: col.id,
-            title: col.title,
-            handle: col.handle,
-            description:
-              (col as any).metadata?.description ||
-              `Discover exclusive handpicked pieces in our ${col.title} collection, ready for same-day delivery across Lusaka.`,
-            badgeText:
-              idx === 0
-                ? "Featured Drop"
-                : idx === 1
-                  ? "Trending Hub"
-                  : "Curated Collection",
-            accentColor: colorAccents[idx % colorAccents.length],
-            products: colProducts,
-          })
-        }
+    const spotlightCategories = [
+      {
+        id: "spotlight-health-beauty",
+        title: "Health & Beauty",
+        description: "Shop health, beauty, skincare, and wellness essentials.",
+        terms: ["health", "beauty", "wellness", "skincare", "cosmetics", "personalcare"],
+        accentColor: "violet" as const,
+      },
+      {
+        id: "spotlight-green-energy",
+        title: "Green Energy",
+        description: "Explore solar, renewable energy, and power solutions.",
+        terms: ["solar", "renewable", "green", "cleanenergy", "inverter", "photovoltaic", "offgrid"],
+        accentColor: "emerald" as const,
+      },
+    ]
+
+    spotlightCategories.forEach((spotlight) => {
+      const matchingProducts = products.filter((product) =>
+        product.categories?.some((category) => {
+          const categoryName = normalize(category.name)
+          const categoryHandle = normalize(category.handle)
+          return spotlight.terms.some(
+            (term) => categoryName.includes(term) || categoryHandle.includes(term)
+          )
+        })
+      )
+
+      if (matchingProducts.length > 0) {
+        const matchedCategory = matchingProducts[0].categories?.find((category) => {
+          const categoryName = normalize(category.name)
+          const categoryHandle = normalize(category.handle)
+          return spotlight.terms.some(
+            (term) => categoryName.includes(term) || categoryHandle.includes(term)
+          )
+        })
+
+        list.push({
+          id: spotlight.id,
+          title: spotlight.title,
+          handle: matchedCategory?.handle || spotlight.id,
+          href: matchedCategory?.handle
+            ? `/${countryCode}/categories/${matchedCategory.handle}`
+            : undefined,
+          description: spotlight.description,
+          badgeText: "Category Spotlight",
+          accentColor: spotlight.accentColor,
+          products: matchingProducts.slice(0, 12),
+        })
+      }
+    })
+
+    collections.forEach((collection, idx) => {
+      const collectionName = normalize(collection.title || collection.handle)
+      if (list.some((item) => normalize(item.title) === collectionName)) {
+        return
+      }
+
+      const colProducts = products.filter((product) => {
+        const belongsToCollection =
+          product.collection_id === collection.id ||
+          product.collection?.id === collection.id ||
+          Boolean(collection.handle && product.collection?.handle === collection.handle) ||
+          (Array.isArray(collection.products) &&
+            collection.products.some((collectionProduct) => collectionProduct.id === product.id))
+        const belongsToNamedCategory =
+          collectionName.length >= 4 &&
+          product.categories?.some((category) =>
+            normalize(`${category.name} ${category.handle}`).includes(collectionName)
+          )
+
+        return belongsToCollection || belongsToNamedCategory
       })
-    }
 
-    // Fallback smart collection only if no collections are configured in store at all
-    if (list.length === 0 && (!collections || collections.length === 0) && products.length > 0) {
+      if (colProducts.length > 0) {
+        list.push({
+          id: collection.id,
+          title: collection.title,
+          handle: collection.handle,
+          description:
+            (typeof collection.metadata?.description === "string"
+              ? collection.metadata.description
+              : null) ||
+            `Discover handpicked pieces in our ${collection.title} collection, ready for same-day delivery across Lusaka.`,
+          badgeText: idx === 0 ? "Featured Drop" : idx === 1 ? "Trending Hub" : "Curated Collection",
+          accentColor: colorAccents[idx % colorAccents.length],
+          products: colProducts.slice(0, 12),
+        })
+      }
+    })
+
+    if (list.length === 0 && products.length > 0) {
       list.push({
         id: "smart-trending",
         title: "Trending Essentials",
         handle: "trending-essentials",
-        description:
-          "The most wanted lifestyle, electronics, and daily essentials trending in Lusaka today.",
+        description: "The most wanted lifestyle, electronics, and daily essentials trending in Lusaka today.",
         badgeText: "Most Popular",
         accentColor: "amber",
-        products: products.slice(0, 10),
+        products: products.slice(0, 12),
       })
     }
 
-    return list
-  }, [collections, products])
+    return list.slice(0, 6)
+  }, [collections, countryCode, products])
 
   const [activeIdx, setActiveIdx] = useState(0)
   const [isPausedByUser, setIsPausedByUser] = useState(false)
@@ -612,7 +670,10 @@ export default function CollectionsPreview({
             {/* Main Action Button */}
             <div className="relative z-10 pt-1">
               <Link
-                href={`/${countryCode}/collections/${activeCollection.handle}`}
+                href={
+                  activeCollection.href ||
+                  `/${countryCode}/collections/${activeCollection.handle}`
+                }
                 className="w-full min-h-[48px] py-3 px-6 rounded-xl bg-amber-400 hover:bg-amber-300 text-black text-sm font-extrabold flex items-center justify-center gap-2 transition-all duration-300 shadow-md shadow-amber-400/20 hover:scale-[1.02] cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400"
               >
                 <span>View Full Collection</span>

@@ -57,7 +57,7 @@ const terms = [
   {
     title: "8. Questions and complaints",
     paragraphs: [
-      "Contact SYA Customer Care by phone or WhatsApp at +260976666611, or by email at info@syatore.com. Customer complaints are handled in line with applicable requirements, including the Zambian Consumer Protection Act.",
+      "Contact SYA Customer Care by phone or WhatsApp at +260976666611, or by email at info@syastore.com. Customer complaints are handled in line with applicable requirements, including the Zambian Consumer Protection Act.",
     ],
   },
 ]

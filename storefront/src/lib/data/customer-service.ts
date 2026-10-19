@@ -7,9 +7,12 @@ export interface FAQItem {
 
 export interface ContactInfo {
   email: string
+  emailSecondary: string
   phone: string
   phoneSecondary: string
   whatsapp: string
+  facebook: string
+  instagram: string
   address: string
   city: string
   country: string
@@ -32,10 +35,13 @@ export interface CustomerServiceData {
 
 export const customerServiceData: CustomerServiceData = {
   contactInfo: {
-    email: "info@syatore.com",
+    email: "info@syastore.com",
+    emailSecondary: "syageneraldealers@outlook.com",
     phone: "+260976666611",
-    phoneSecondary: "",
+    phoneSecondary: "+260976666611",
     whatsapp: "+260976666611",
+    facebook: "https://www.facebook.com/syastoreonline",
+    instagram: "https://www.instagram.com/syaonlinetrading/",
     address: "Plot No. F/687/A/1/A/8, Makeni Road",
     city: "Lusaka",
     country: "Zambia",
@@ -117,7 +123,7 @@ export const customerServiceData: CustomerServiceData = {
       "You may request a return within 7 days of delivery. Returned products must be unused, in their original packaging, and accompanied by proof of purchase.",
       "Some products may be excluded from returns, including clearance items, consumables, and solar batteries. Contact Customer Care to confirm eligibility before sending an item back.",
       "Approved returns are resolved by exchange or store credit only. SYA Store does not provide cash refunds under this policy.",
-      "Returns must be approved before items are sent back. Start a request by phone or WhatsApp at +260976666611, or email info@syatore.com.",
+      "Returns must be approved before items are sent back. Start a request by phone or WhatsApp at +260976666611, or email info@syastore.com.",
     ],
   },
   deliveryPolicy: {

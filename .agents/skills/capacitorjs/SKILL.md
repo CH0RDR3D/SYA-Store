@@ -1,80 +1,66 @@
 ---
 name: capacitorjs
-description: 'Use this skill when working with Capacitor (capacitorjs.com) to wrap a web app as a native iOS/Android app, add or configure native platforms, manage capacitor.config, use or build plugins, or debug native build/sync/run issues. Ground all guidance in official Capacitor documentation (https://capacitorjs.com/docs).'
-argument-hint: 'Describe your Capacitor task (platform, plugin, config, build/sync/run issue) and expected outcome'
+description: "Use when developing this repository's Capacitor Android app, troubleshooting Next.js storefront builds in Capacitor, editing the mobile app configuration, or syncing/running/building the Android project. Follow official Capacitor documentation."
+argument-hint: "Describe the Capacitor Android or storefront task and expected outcome"
 user-invocable: true
 disable-model-invocation: false
 ---
 
-# Capacitor.js Development Assistant
+# Capacitor for SYA Store
 
-## Purpose
-Act as a senior engineer assistant for Capacitor, the cross-platform native runtime that wraps web apps to run natively on iOS, Android, and the web. Help set up, configure, extend, and debug Capacitor projects with guidance grounded in the official docs at https://capacitorjs.com/docs.
+Use this skill for the Capacitor Android shell and its Next.js storefront. Ground Android and Capacitor behavior in the official [Android documentation](https://capacitorjs.com/docs/android) and [configuration guide](https://capacitorjs.com/docs/android/configuration).
 
-## When to Use This Skill
-- Adding Capacitor to an existing web app, or scaffolding a new Capacitor app (`@capacitor/create-app`).
-- Adding/removing native platforms (`npx cap add ios|android`) or troubleshooting native project structure.
-- Editing `capacitor.config.ts`/`.json` (appId, appName, webDir, server, android/ios overrides, plugin config).
-- Installing, configuring, or building official/community/custom Capacitor plugins.
-- Running the developer workflow: build web assets → `npx cap sync` → `npx cap open`/`run`/`build`.
-- Debugging live-reload (`server.url`, `cleartext`), WebView issues, permissions, or signing/build errors on iOS (Xcode) or Android (Android Studio).
-- Upgrading Capacitor core/CLI/platform packages and keeping versions aligned.
+## Repository layout and constraints
 
-## Core Workflow
-1. Clarify target platform(s) (iOS, Android, or both) and whether this is a fresh setup or an existing project.
-2. Identify the layer involved: CLI/tooling, `capacitor.config`, native project (Xcode/Android Studio), or a plugin (official/community/custom).
-3. Check official Capacitor docs first (https://capacitorjs.com/docs) as the source of truth for config schema, CLI commands, and plugin APIs.
-4. Map the request to the standard Capacitor workflow: build web code → `npx cap sync` → open/run/build native project.
-5. Propose a minimal, concrete change (config edit, command sequence, or plugin install) and implement it.
-6. Call out required native tooling (Xcode/CocoaPods for iOS, Android Studio/JDK for Android) and environment variables when relevant (`CAPACITOR_ANDROID_STUDIO_PATH`, `CAPACITOR_COCOAPODS_PATH`).
-7. Provide validation steps (e.g., `npx cap doctor`, `npx cap sync`, running on device/emulator).
+- The Next.js storefront is in `storefront/`. The repository root is not a Next.js app; running its root `npm run build` can fail with "Couldn't find any `pages` or `app` directory."
+- The native Android shell and its Capacitor CLI project are in `mobile/`. Run Capacitor CLI commands from that directory so they use the matching config and dependencies.
+- Configure the Android app in `mobile/capacitor.config.json`; do not assume the root `capacitor.config.json` configures the Android project.
+- The storefront is a server-rendered Next.js app with middleware and API routes. Do not add `output: "export"` or treat its build as a static Capacitor bundle without verifying that all server-dependent features have been replaced.
+- The mobile project currently uses Capacitor 7 packages while root dependencies use Capacitor 8. Keep `@capacitor/core`, `@capacitor/cli`, and `@capacitor/android` versions aligned within the app being built; do not mix the root and `mobile/` installations.
+- `mobile/www/index.html` is only a placeholder. Local development loads the running storefront using `server.url` in the mobile config.
 
-## Key Concepts & Commands
-- **Install**: `npm i @capacitor/core` + `npm i -D @capacitor/cli`, then `npx cap init`.
-- **Add platforms**: `npm i @capacitor/android @capacitor/ios` then `npx cap add android` / `npx cap add ios`.
-- **Sync**: `npx cap sync` copies the built web bundle (`webDir`) into native projects and updates native dependencies. Run after every web build and after installing/removing plugins.
-- **Copy vs sync**: `npx cap copy` only copies web assets/config (faster, no native dependency updates); `npx cap sync` also updates native deps — use `sync` after adding/removing plugins.
-- **Open native IDE**: `npx cap open ios` / `npx cap open android`.
-- **Run on device/emulator**: `npx cap run ios` / `npx cap run android`.
-- **Build native binary (CI-friendly)**: `npx cap build android|ios` produces a signed AAB/APK/IPA.
-- **Update Capacitor**: keep `@capacitor/core`, `@capacitor/ios`, `@capacitor/android`, and `@capacitor/cli` on matching versions.
-- **Diagnose environment**: `npx cap doctor`.
+## Local Android development
 
-## capacitor.config.ts Essentials
-```ts
-import { CapacitorConfig } from '@capacitor/cli';
+1. Start the storefront from `storefront/`:
 
-const config: CapacitorConfig = {
-  appId: 'com.company.appname',
-  appName: 'My Capacitor App',
-  webDir: 'www', // must match the build output dir of the web framework
-};
+   ```powershell
+   cd C:\path\to\syastore\storefront
+   npm install
+   npm run dev
+   ```
 
-export default config;
-```
-- `webDir` must point to the actual built web assets directory (`dist`, `build`, `www`, etc.) — a common sync failure is a mismatched `webDir`.
-- `server.url` / `server.cleartext` are for live-reload during development only — never ship these enabled in production.
-- Platform-specific overrides live under `android` and `ios` keys (e.g., `android.path`, `ios.scheme`, `loggingBehavior`, `allowMixedContent`, `webContentsDebuggingEnabled`).
-- `plugins` key holds per-plugin configuration objects keyed by plugin class name.
-- `includePlugins` (global or per-platform) controls which npm plugin packages are included during `sync`.
+   The storefront development server listens on port 3000.
 
-## Decision Points
-- If the issue is "changes not showing up on device": verify web build ran, then `npx cap sync` (not just `copy` if plugins changed), then rebuild/reinstall the native app — Capacitor does not auto-detect web file changes without an explicit build+sync.
-- If the issue is native build/signing errors: point to the native IDE (Xcode/Android Studio) and check `ios.buildOptions`/`android.buildOptions` in config, or keystore/provisioning profile setup.
-- If the request is about accessing a native API: check https://capacitorjs.com/docs/apis for an official plugin before recommending a custom native plugin.
-- If a plugin isn't working after install: confirm `npx cap sync` was run, and for iOS confirm `pod install`/CocoaPods resolved correctly.
-- If asked to build a custom plugin: reference https://capacitorjs.com/docs/plugins/creating-plugins (Swift for iOS, Java/Kotlin for Android, TypeScript JS bridge).
+2. In a second terminal, run Capacitor from `mobile/`:
 
-## Response Standards
-- Ground recommendations in official Capacitor documentation and the standard build → sync → run/open → build workflow.
-- Give exact CLI commands and the correct order of operations.
-- Call out platform-specific prerequisites (Xcode/CocoaPods vs Android Studio/JDK) and version-alignment requirements across `@capacitor/*` packages.
-- Flag any dev-only config (live reload, cleartext, debugging flags) that must not ship to production.
-- Provide a clear validation step (e.g., `npx cap doctor`, running on a real device/emulator).
+   ```powershell
+   cd C:\path\to\syastore\mobile
+   npm install
+   npx cap sync android
+   npx cap run android
+   ```
 
-## Example Prompts
-- Add Capacitor to this Next.js/Vite app and get it running on an Android emulator.
-- Configure `capacitor.config.ts` to enable live reload against a local dev server.
-- Diagnose why native code changes aren't appearing after `npx cap sync`.
-- Add and configure the official Camera plugin for iOS and Android.
-- Set up Android release signing via `android.buildOptions` in the Capacitor config.
+   The current emulator URL, `http://10.0.2.2:3000`, uses Android Emulator's host-loopback alias. For a physical device, use the development machine's reachable LAN address and ensure the server is accessible from that device.
+
+3. Use Android Studio to inspect or run the native project:
+
+   ```powershell
+   npx cap open android
+   ```
+
+   Android development requires Android Studio and an Android API 24+ emulator or device. See the official [Android setup and run guide](https://capacitorjs.com/docs/android).
+
+After changing Capacitor config or native dependencies, run `npx cap sync android` from `mobile/`. Use `npx cap doctor` there to diagnose the local toolchain.
+
+## Storefront build troubleshooting
+
+- Use `npm run build` from `storefront/` for the repository's managed build (it waits for the backend and invokes the storefront launcher).
+- Use `npm run build:next` from `storefront/` only when intentionally building Next.js directly and its environment/backend prerequisites are available.
+- The regular Android development loop does not require a storefront production build because the emulator loads the live development server.
+
+## Production and release
+
+- Do not ship a development `server.url`, LAN/localhost URL, or `cleartext: true` as a production configuration.
+- The storefront depends on a Next.js server; a plain static export is not a drop-in production bundle. Before making a release build, choose and verify a production architecture that supports the storefront's server-side routes and middleware.
+- Build and test the storefront and native Android app against that production architecture before distribution. Do not claim a successful native release from `npx cap build android` alone.
+- Follow the official Android [configuration and permissions guide](https://capacitorjs.com/docs/android/configuration) for manifest changes, application ID, app name, deep links, and permissions. Check plugin documentation before adding native permissions.

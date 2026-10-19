@@ -108,12 +108,13 @@ export async function middleware(request: NextRequest) {
 
   const countryCode = regionMap && (await getCountryCode(request, regionMap))
 
-  const urlHasCountryCode =
+  const urlHasCountryCode = Boolean(
     countryCode && request.nextUrl.pathname.split("/")[1].includes(countryCode)
+  )
 
-  // check if one of the country codes is in the url
+  // Continue without region routing if the backend has no regions available.
   if (
-    urlHasCountryCode &&
+    (!countryCode || urlHasCountryCode) &&
     (!isOnboarding || onboardingCookie) &&
     (!cartId || cartIdCookie)
   ) {

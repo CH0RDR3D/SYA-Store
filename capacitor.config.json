@@ -1,5 +1,11 @@
 {
   "appId": "com.syastore.app",
   "appName": "SYA Store",
-  "webDir": "www"
+  "webDir": "www",
+  "npmClient": "npm",
+  "plugins": {
+    "SplashScreen": {
+      "launchShowDuration": 0
+    }
+  }
 }
