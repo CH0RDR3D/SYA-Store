@@ -53,6 +53,9 @@ importers:
       axios:
         specifier: ^1.15.0
         version: 1.15.0(debug@4.4.3(supports-color@8.1.1))
+      clsx:
+        specifier: ^2.1.1
+        version: 2.1.1
       framer-motion:
         specifier: ^12.43.0
         version: 12.43.0(react-dom@19.0.4(react@19.0.4))(react@19.0.4)
