@@ -48,7 +48,10 @@ const ProductTemplate: React.FC<ProductTemplateProps> = ({
       >
         {/* Left Column: Image Gallery */}
         <div className="w-full lg:w-[60%] min-w-0">
-          <ImageGallery images={product?.images || []} />
+          <ImageGallery
+            images={product?.images || []}
+            thumbnail={product?.thumbnail}
+          />
         </div>
 
         {/* Right Column: Info, Actions, Tabs */}

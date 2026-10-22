@@ -7,16 +7,22 @@ import { useCallback, useMemo, useRef, useState } from "react"
 
 type ImageGalleryProps = {
   images: HttpTypes.StoreProductImage[]
+  thumbnail?: string | null
 }
 
 // Minimum horizontal drag distance (px) to register as a swipe
 const SWIPE_THRESHOLD = 40
 
-const ImageGallery = ({ images }: ImageGalleryProps) => {
-  const validImages = useMemo(
-    () => images.filter((image) => Boolean(image?.url)),
-    [images]
-  )
+const ImageGallery = ({ images, thumbnail }: ImageGalleryProps) => {
+  const validImages = useMemo(() => {
+    const galleryImages = images.filter((image) => Boolean(image?.url))
+
+    if (galleryImages.length > 0) {
+      return galleryImages
+    }
+
+    return thumbnail ? [{ id: "product-thumbnail", url: thumbnail }] : []
+  }, [images, thumbnail])
   const [selectedIndex, setSelectedIndex] = useState(0)
   const thumbnailsRef = useRef<HTMLDivElement>(null)
   const touchStartX = useRef(0)

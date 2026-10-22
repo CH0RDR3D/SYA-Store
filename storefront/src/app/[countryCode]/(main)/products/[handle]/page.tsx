@@ -36,8 +36,7 @@ const fetchProductByHandle = async (
             "x-publishable-api-key": getPublishableApiKey(),
           }
         : undefined,
-      cache: "force-cache",
-      next: { revalidate: 300, tags: ["products"] },
+      cache: "no-store",
     })
 
     if (!response.ok) {
