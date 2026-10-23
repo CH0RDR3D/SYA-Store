@@ -80,3 +80,5 @@ Start a Medusa backend:
 
 ```bash
 npx create-medusa-app@latest
+
+## Designed by ChordRED Innovations
