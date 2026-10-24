@@ -1,7 +1,5 @@
 import { Metadata } from "next"
 import {
-  Car,
-  CircleGauge,
   HeartHandshake,
   House,
   Lightbulb,
@@ -9,92 +7,100 @@ import {
   Phone,
   ShieldCheck,
   Sun,
-  Wrench,
   Truck,
   Sparkles,
   Award,
   Users,
   CheckCircle2,
   ArrowRight,
+  Laptop,
+  Sofa,
+  Hammer,
 } from "lucide-react"
 import LocalizedClientLink from "@modules/common/components/localized-client-link"
 
 export const metadata: Metadata = {
   title: "About Us | Who We Are | SYA Store Lusaka",
   description:
-    "Discover SYA Store: Zambia's multi-sector destination for quality vehicles, auto garage services, solar equipment, and household essentials in Makeni, Lusaka.",
+    "Discover SYA Store, Zambia's growing ecommerce destination for genuine appliances, electronics, solar equipment, furniture, hardware, and everyday essentials.",
 }
 
-// Guiding Principles inspired by Amazon's leadership philosophy tailored to SYA
 const values = [
   {
     title: "Customer Obsession",
-    text: "We start with customer needs and work backwards. Every product cataloged and service performed is measured by the value and reliability it delivers to everyday lives.",
+    text: "Everything begins with the customer. We work backwards from customer needs to create a shopping experience that is simple, reliable, and rewarding.",
     icon: HeartHandshake,
   },
   {
-    title: "Uncompromising Integrity & Ethics",
-    text: "We build long-term trust through honest automotive diagnostics, transparent pricing, genuine solar equipment, and clear warranty terms.",
+    title: "Vast Selection",
+    text: "We continuously expand our catalog so customers can find more of what they need in one convenient destination.",
     icon: ShieldCheck,
   },
   {
-    title: "Practical Innovation",
-    text: "We continually adapt our offerings to solve real challenges — from reliable hybrid solar power systems to modern, fast digital checkout via Lenco.",
+    title: "Fast Fulfillment",
+    text: "Customers value speed. We invest in efficient logistics and fulfillment processes to deliver orders quickly and reliably.",
     icon: Lightbulb,
   },
   {
-    title: "Quality & Accountability",
-    text: "We stand behind everything we sell with direct customer care, verified suppliers, and professional after-sales garage support.",
+    title: "Long-Term Trust",
+    text: "We earn trust through genuine products, transparent pricing, responsive support, and consistent service.",
     icon: Award,
   },
 ]
 
-// 5 Core Divisions / What We Do
 const services = [
   {
-    title: "Vehicle Showroom",
-    text: "Explore dependable passenger vehicles, work trucks, and commercial utility models with end-to-end guidance from inspection to handover.",
-    icon: Car,
-    badge: "Verified Quality",
+    title: "Household Appliances",
+    text: "Shop practical appliances selected to make everyday home life easier.",
+    icon: House,
+    badge: "Best Sellers",
   },
   {
-    title: "Auto Garage & Diagnostics",
-    text: "Access certified mechanics for computer diagnostics, routine servicing, brake/suspension maintenance, and precision repairs at our Makeni garage.",
-    icon: Wrench,
-    badge: "Certified Techs",
+    title: "Electronics & Technology",
+    text: "Discover useful electronics and technology for home, work, and everyday life.",
+    icon: Laptop,
+    badge: "Latest Devices",
   },
   {
-    title: "Renewable Solar Energy",
-    text: "Empower homes and businesses with Tier-1 solar panels, hybrid inverters, deep-cycle lithium batteries, and professional turnkey installation.",
+    title: "Solar & Renewable Energy",
+    text: "Explore solar products that help homes and businesses access dependable power.",
     icon: Sun,
     badge: "Clean Power",
   },
   {
-    title: "Household & Hardware",
-    text: "Browse curated home essentials, appliances, tools, and durable fixtures chosen for long-lasting value and everyday convenience.",
-    icon: House,
-    badge: "Everyday Living",
+    title: "Furniture & Home Living",
+    text: "Find furniture and home essentials that bring comfort and style to your space.",
+    icon: Sofa,
+    badge: "Comfort & Style",
   },
   {
-    title: "Professional Car Wash & Detailing",
-    text: "Keep your vehicle pristine with thorough exterior foaming, undercarriage cleaning, interior vacuuming, and protective wax detailing.",
-    icon: CircleGauge,
-    badge: "Care & Polish",
+    title: "Hardware & Essential Tools",
+    text: "Browse essential tools and hardware for projects at home or work.",
+    icon: Hammer,
+    badge: "Built to Last",
   },
   {
-    title: "Express Logistics & Makeni Pickup",
-    text: "Enjoy swift 24h delivery across Lusaka, secure provincial shipping, or zero-fee collection straight from our Makeni Road warehouse.",
+    title: "Nationwide Delivery",
+    text: "Shop from anywhere in Zambia with convenient delivery and local support.",
     icon: Truck,
-    badge: "Fast Delivery",
+    badge: "Fast Fulfillment",
   },
 ]
 
-// Key Performance / Trust Metrics
 const stats = [
-  { value: "5+", label: "Integrated Divisions", sub: "Vehicles, Solar, Auto, Home & Logistics" },
-  { value: "100%", label: "Genuine Quality", sub: "Tested & inspected inventory" },
-  { value: "24h", label: "Lusaka Delivery", sub: "Fast local courier fulfillment" },
-  { value: "7-Day", label: "Return Window", sub: "Exchange or store credit for eligible returns" },
+  { value: "100%", label: "Genuine Products", sub: "Sourced from trusted suppliers" },
+  { value: "24h", label: "Lusaka Delivery", sub: "Fast local fulfillment" },
+  { value: "7-Day", label: "Easy Returns", sub: "On eligible items" },
+  { value: "5+", label: "Product Categories", sub: "Everything in one place" },
+]
+
+const advantages = [
+  "Wide selection of products",
+  "Competitive everyday pricing",
+  "Verified and genuine inventory",
+  "Fast order fulfillment",
+  "Secure checkout",
+  "Local customer support",
 ]
 
 export default function AboutPage() {
@@ -102,7 +108,7 @@ export default function AboutPage() {
     <main className="min-h-screen bg-[var(--bg-base)] py-8 sm:py-12 transition-colors duration-200">
       <div className="content-container max-w-6xl mx-auto px-4 sm:px-6 space-y-16 sm:space-y-24">
 
-        {/* ── HERO BANNER (Amazon "Who We Are" inspired) ── */}
+        {/* ── HERO BANNER ── */}
         <section className="relative overflow-hidden rounded-3xl border border-amber-500/30 bg-[var(--bg-card)] shadow-sm">
           <div className="relative z-10 grid gap-8 px-6 py-12 sm:px-12 sm:py-16 lg:grid-cols-[1.3fr_0.7fr] items-center">
             <div>
@@ -110,11 +116,10 @@ export default function AboutPage() {
                 <Sparkles className="h-3.5 w-3.5" /> Lusaka, Zambia · Who We Are
               </div>
               <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black leading-tight tracking-tight text-[var(--text-primary)]">
-                Driven by quality. <br className="hidden sm:inline" />
-                <span className="text-amber-500">Dedicated to your everyday life.</span>
+                Zambia&apos;s Growing Destination for Everyday Shopping.
               </h1>
               <p className="mt-5 text-sm sm:text-base lg:text-lg leading-relaxed text-[var(--text-secondary)] max-w-2xl">
-                SYA Store brings together dependable vehicles, renewable solar power, professional automotive care, and curated household goods under one roof in Lusaka. We are committed to building long-term trust through honest service, authentic products, and customer-first support.
+                Discover quality appliances, electronics, solar equipment, furniture, tools, and household essentials backed by genuine products, affordable prices, and customer-first service.
               </p>
               
               <div className="mt-8 flex flex-wrap items-center gap-4">
@@ -141,12 +146,12 @@ export default function AboutPage() {
                   <MapPin className="h-5 w-5" />
                 </div>
                 <div>
-                  <h2 className="text-xs uppercase tracking-wider text-amber-500 font-bold">Flagship Hub</h2>
+                  <h2 className="text-xs uppercase tracking-wider text-amber-500 font-bold">Our Store</h2>
                   <p className="text-sm font-bold text-[var(--text-primary)]">Makeni Road, Lusaka</p>
                 </div>
               </div>
               <p className="text-xs sm:text-sm text-[var(--text-secondary)] leading-relaxed border-t border-amber-500/15 pt-4">
-                Our multi-service complex on Makeni Road houses our automotive showroom, technical repair garage, solar staging center, and express dispatch hub.
+                Shop online or visit us in Lusaka for local support and order collection.
               </p>
               <div className="flex items-center gap-2 text-xs font-semibold text-amber-500 pt-1">
                 <CheckCircle2 className="h-4 w-4" /> Open Monday through Saturday
@@ -172,20 +177,20 @@ export default function AboutPage() {
         {/* ── OUR STORY / WHO WE ARE ── */}
         <section className="grid gap-8 lg:grid-cols-[0.8fr_1.2fr] items-start">
           <div>
-            <span className="text-xs font-bold uppercase tracking-widest text-amber-500">Our Story & Mission</span>
+            <span className="text-xs font-bold uppercase tracking-widest text-amber-500">Our Story</span>
             <h2 className="mt-2 text-2xl sm:text-3xl font-black tracking-tight text-[var(--text-primary)] leading-snug">
-              Built to meet the real needs of Zambian drivers, homes & businesses.
+              Making quality products more accessible.
             </h2>
           </div>
           <div className="space-y-4 text-sm sm:text-base leading-relaxed text-[var(--text-secondary)]">
             <p>
-              Founded in Lusaka, SYA Store was created to solve a fundamental need: providing a unified, dependable source for essential transport, sustainable energy, automotive engineering, and household products.
+              SYA Store was founded with a simple goal: to make quality products more accessible to Zambian households and businesses.
             </p>
             <p>
-              We believe that shopping for vehicles, solar backup systems, or auto repairs should not involve uncertainty. By bringing together hands-on technical expertise, direct manufacturer sourcing, and a customer-centric support team, we ensure every customer receives reliable advice and lasting value.
+              What began as a growing trading business has evolved into a diversified retail company serving customers through both physical operations and a modern ecommerce platform. Today, SYA Store offers a carefully selected range of appliances, electronics, solar solutions, furniture, hardware products, and everyday essentials sourced from trusted suppliers.
             </p>
             <p>
-              Whether you are powering your home through solar independence, maintaining your vehicle for long-distance travel, or furnishing your household, SYA Store stands behind you at every step.
+              As we continue to grow, our focus remains unchanged: delivering genuine products, competitive prices, and exceptional customer experiences that customers can rely on.
             </p>
           </div>
         </section>
@@ -196,11 +201,11 @@ export default function AboutPage() {
             <div>
               <span className="text-xs font-bold uppercase tracking-widest text-amber-500">What We Do</span>
               <h2 className="mt-1 text-2xl sm:text-3xl font-black tracking-tight text-[var(--text-primary)]">
-                Our Core Divisions
+                Shop Across Categories
               </h2>
             </div>
             <p className="text-xs sm:text-sm text-[var(--text-secondary)] max-w-md">
-              Comprehensive services designed to keep you powered, mobile, and comfortable.
+              Explore everyday essentials for your home, business, and life.
             </p>
           </div>
 
@@ -227,6 +232,27 @@ export default function AboutPage() {
               </article>
             ))}
           </div>
+        </section>
+
+        {/* ── WHY CUSTOMERS CHOOSE SYA ── */}
+        <section className="rounded-3xl border border-amber-500/20 bg-[var(--bg-card)] p-6 sm:p-10 shadow-sm">
+          <div className="max-w-3xl">
+            <span className="text-xs font-bold uppercase tracking-widest text-amber-500">Shopping with SYA</span>
+            <h2 className="mt-1 text-2xl sm:text-3xl font-black tracking-tight text-[var(--text-primary)]">
+              Why Customers Choose SYA Store
+            </h2>
+            <p className="mt-3 text-sm sm:text-base leading-relaxed text-[var(--text-secondary)]">
+              Whether you&apos;re upgrading your home, powering your business, or shopping for everyday essentials, SYA Store combines quality products, affordable pricing, and dependable service to make every purchase worthwhile.
+            </p>
+          </div>
+          <ul className="mt-7 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {advantages.map((advantage) => (
+              <li key={advantage} className="flex items-center gap-3 text-sm font-semibold text-[var(--text-primary)]">
+                <CheckCircle2 className="h-5 w-5 shrink-0 text-amber-500" aria-hidden="true" />
+                {advantage}
+              </li>
+            ))}
+          </ul>
         </section>
 
         {/* ── GUIDING PRINCIPLES / OUR VALUES ── */}
@@ -257,15 +283,15 @@ export default function AboutPage() {
           </div>
         </section>
 
-        {/* ── PHYSICAL SHOWROOM & CONTACT HUB ── */}
+        {/* ── STORE LOCATION & CONTACT ── */}
         <section className="rounded-3xl border border-[var(--surface-border)] bg-[var(--bg-card)] p-6 sm:p-10 shadow-sm">
           <div className="mb-8">
             <span className="text-xs font-bold uppercase tracking-widest text-amber-500">Visit Us</span>
             <h2 className="mt-1 text-2xl sm:text-3xl font-black tracking-tight text-[var(--text-primary)]">
-              Lusaka Showroom & Service Center
+              Visit Our Lusaka Store
             </h2>
             <p className="mt-1 text-xs sm:text-sm text-[var(--text-secondary)]">
-              Visit our Makeni complex for test drives, vehicle maintenance, solar advice, and store order collections.
+              Find us in Makeni or contact our team for help with your order.
             </p>
           </div>
 
@@ -276,7 +302,7 @@ export default function AboutPage() {
                 <MapPin className="h-5 w-5 shrink-0" aria-hidden="true" />
               </div>
               <div>
-                <h4 className="text-xs font-bold uppercase tracking-wider text-[var(--text-muted)]">Address</h4>
+                <h4 className="text-xs font-bold uppercase tracking-wider text-[var(--text-muted)]">Warehouse Address</h4>
                 <address className="not-italic text-sm font-semibold text-[var(--text-primary)] mt-1 leading-snug">
                   Plot No. F/687/A/1/A/8,<br />
                   Makeni Road, Lusaka, Zambia
@@ -292,7 +318,7 @@ export default function AboutPage() {
               <div>
                 <h4 className="text-xs font-bold uppercase tracking-wider text-[var(--text-muted)]">Call Support</h4>
                 <p className="text-sm font-semibold text-[var(--text-primary)] mt-1 space-y-1">
-                  <a className="block hover:text-amber-500 transition" href="tel:+260978883420">+260-978-883-420</a>
+                  <a className="block hover:text-amber-500 transition" href="tel:+260976666611">+260-976-666-611</a>
                   <a className="block hover:text-amber-500 transition text-xs text-[var(--text-secondary)]" href="tel:+260966666608">+260-966-666-608</a>
                 </p>
               </div>
@@ -314,6 +340,12 @@ export default function AboutPage() {
               </div>
             </div>
           </div>
+        </section>
+
+        <section className="rounded-2xl bg-amber-500 px-6 py-8 text-center sm:px-10">
+          <p className="mx-auto max-w-4xl text-lg font-bold leading-relaxed text-black sm:text-xl">
+            SYA Store is a diversified retail and ecommerce company that helps Zambian homes and businesses access genuine products, affordable prices, and convenient shopping across appliances, electronics, solar solutions, furniture, hardware, and everyday essentials.
+          </p>
         </section>
 
       </div>

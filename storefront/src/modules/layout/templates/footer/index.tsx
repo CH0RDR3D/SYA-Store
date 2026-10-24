@@ -129,7 +129,7 @@ export default async function Footer() {
               <div className="flex items-center gap-2">
                 <Phone className="h-3.5 w-3.5 text-amber-500 shrink-0" />
                 <a href="tel:+260976666611" className="hover:text-amber-500 transition">
-                  +260976666611
+                  +260-976-666-611
                 </a>
               </div>
               <div className="flex items-center gap-2">
@@ -146,7 +146,7 @@ export default async function Footer() {
               </div>
               <div className="flex items-center gap-2 text-[11px] text-[var(--text-muted)] pt-1">
                 <Clock className="h-3.5 w-3.5 text-amber-500 shrink-0" />
-                <span>Mon - Fri: 08:00 - 17:00 CAT</span>
+                <span>Mon - Sun: 08:00 - 18:00 CAT</span>
               </div>
             </div>
           </div>
@@ -165,10 +165,15 @@ export default async function Footer() {
             <LocalizedClientLink href="/customer-care" className="hover:text-[var(--text-primary)] transition">
               Customer Care
             </LocalizedClientLink>
-            <ThemeToggle />
-            <MedusaCTA />
+            <LocalizedClientLink href="/privacy-policy" className="hover:text-[var(--text-primary)] transition">
+              Privacy Policy
+            </LocalizedClientLink>
+            <LocalizedClientLink href="/terms-of-service" className="hover:text-[var(--text-primary)] transition">
+              Terms of Service
+            </LocalizedClientLink>
           </div>
         </div>
+        <MedusaCTA />
       </div>
     </footer>
   )

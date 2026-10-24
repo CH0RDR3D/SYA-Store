@@ -156,7 +156,7 @@ export default function CustomHomeLayout({
           <div className="relative z-10 max-w-lg">
             <p className="text-amber-400 text-xs uppercase tracking-widest font-semibold mb-2">Limited Time</p>
             <h3 className="text-2xl md:text-3xl font-bold text-white mb-3">
-              Free Pickup at Our Store
+              Free Pickup at Our Office in Makeni Bonaventure!
             </h3>
             <p className="text-gray-300 text-sm mb-5">
               Select "Store Pickup" during checkout — no delivery fee, ready same day.

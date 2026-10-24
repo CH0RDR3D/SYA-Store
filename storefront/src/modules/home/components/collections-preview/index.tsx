@@ -5,6 +5,7 @@ import Link from "next/link"
 import Image from "next/image"
 import type { HttpTypes } from "@medusajs/types"
 import { convertToLocale } from "@lib/util/money"
+import { Span } from "next/dist/trace";
 
 interface CollectionsPreviewProps {
   collections?: HttpTypes.StoreCollection[]
@@ -516,7 +517,7 @@ export default function CollectionsPreview({
               Featured Collections
             </h2>
             <p className="text-xs sm:text-sm text-[var(--text-secondary)] mt-1">
-              Live rotating product previews • Auto-cycles or tap to explore
+              Check out our <span className="font-bold">Featured collections</span> • <span className="font-bold">SAME-DAY!</span> delivery across Lusaka.
             </p>
           </div>
 

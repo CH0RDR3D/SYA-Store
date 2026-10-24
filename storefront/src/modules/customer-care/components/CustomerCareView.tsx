@@ -101,10 +101,13 @@ export default function CustomerCareView({
     topic: "General Inquiry",
     orderNumber: "",
     message: "",
+    website: "",
   })
   const [errors, setErrors] = useState<{ [key: string]: string }>({})
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isSuccess, setIsSuccess] = useState(false)
+  const [confirmationSent, setConfirmationSent] = useState(true)
+  const [submitError, setSubmitError] = useState<string | null>(null)
 
   const { contactInfo, faqs } = data
 
@@ -132,17 +135,31 @@ export default function CustomerCareView({
   const validateForm = () => {
     const tempErrors: { [key: string]: string } = {}
     if (!formValues.name.trim()) tempErrors.name = "Full name is required."
+    else if (formValues.name.trim().length > 120) {
+      tempErrors.name = "Name must be 120 characters or fewer."
+    }
 
     if (!formValues.email.trim()) {
       tempErrors.email = "Email address is required."
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formValues.email)) {
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formValues.email.trim())) {
       tempErrors.email = "Please enter a valid email address."
+    } else if (formValues.email.trim().length > 254) {
+      tempErrors.email = "Email address must be 254 characters or fewer."
+    }
+
+    if (
+      formValues.phone.trim() &&
+      !/^[+()\d\s.-]{7,40}$/.test(formValues.phone.trim())
+    ) {
+      tempErrors.phone = "Please enter a valid phone number."
     }
 
     if (!formValues.message.trim()) {
       tempErrors.message = "Message is required."
     } else if (formValues.message.trim().length < 10) {
       tempErrors.message = "Message must be at least 10 characters long."
+    } else if (formValues.message.trim().length > 5000) {
+      tempErrors.message = "Message must be 5,000 characters or fewer."
     }
 
     setErrors(tempErrors)
@@ -154,9 +171,27 @@ export default function CustomerCareView({
     if (!validateForm()) return
 
     setIsSubmitting(true)
+    setSubmitError(null)
     try {
-      // Simulate API submission
-      await new Promise((resolve) => setTimeout(resolve, 1200))
+      const response = await fetch("/api/customer-care", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify(formValues),
+      })
+      const result = (await response.json()) as {
+        success?: boolean
+        confirmationSent?: boolean
+        message?: string
+      }
+
+      if (!response.ok || !result.success) {
+        setSubmitError(
+          result.message || "We could not send your message. Please try again."
+        )
+        return
+      }
+
+      setConfirmationSent(result.confirmationSent !== false)
       setIsSuccess(true)
       setFormValues({
         name: "",
@@ -165,13 +200,34 @@ export default function CustomerCareView({
         topic: "General Inquiry",
         orderNumber: "",
         message: "",
+        website: "",
       })
       setErrors({})
     } catch (err) {
       console.error("[CustomerCare] Submission error:", err)
+      setSubmitError(
+        "We could not send your message. Please check your connection and try again."
+      )
     } finally {
       setIsSubmitting(false)
     }
+  }
+
+  const updateFormValue = (
+    field: keyof typeof formValues,
+    value: string
+  ) => {
+    setFormValues((current) => ({ ...current, [field]: value }))
+    setErrors((current) => {
+      if (!current[field]) {
+        return current
+      }
+
+      const next = { ...current }
+      delete next[field]
+      return next
+    })
+    setSubmitError(null)
   }
 
   const handleTopicSelect = (topic: typeof QUICK_TOPICS[number]) => {
@@ -409,9 +465,9 @@ export default function CustomerCareView({
                   <h3 className="text-xs uppercase tracking-wider text-[var(--text-muted)] font-bold">Call Support</h3>
                   <div className="mt-1 space-y-0.5">
                     <a href={`tel:${contactInfo.phone}`} className="block text-sm font-bold text-[var(--text-primary)] hover:text-amber-500 transition">
-                      {contactInfo.phone}
+                      {contactInfo.phone.replace(/^\+260/, "0")}
                     </a>
-                    {contactInfo.phoneSecondary && (
+                    {contactInfo.phoneSecondary && contactInfo.phoneSecondary !== contactInfo.phone && (
                       <a href={`tel:${contactInfo.phoneSecondary}`} className="block text-xs font-medium text-[var(--text-secondary)] hover:text-amber-500 transition">
                         {contactInfo.phoneSecondary}
                       </a>
@@ -420,6 +476,14 @@ export default function CustomerCareView({
                   <p className="text-[11px] text-[var(--text-muted)] mt-1.5 flex items-center gap-1">
                     <Clock className="w-3 h-3" /> {contactInfo.businessHours}
                   </p>
+                  <a
+                    href={`https://wa.me/${contactInfo.whatsapp.replace(/\D/g, "")}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="mt-2 inline-flex text-xs font-semibold text-amber-500 hover:underline"
+                  >
+                    WhatsApp: 0976666611
+                  </a>
                 </div>
               </div>
 
@@ -462,15 +526,27 @@ export default function CustomerCareView({
           {/* Contact Message Form */}
           <div className="lg:col-span-7 rounded-3xl border border-[var(--surface-border)] bg-[var(--bg-card)] p-6 md:p-8 shadow-sm">
             <div className="mb-6">
-              <h2 className="text-2xl font-black tracking-tight text-[var(--text-primary)]">Send a Support Ticket</h2>
+              <h2 className="text-2xl font-black tracking-tight text-[var(--text-primary)]">Send us a message</h2>
               <p className="text-xs sm:text-sm text-[var(--text-secondary)] mt-1">
-                Fill out the details below and an SYA Customer Care specialist will get back to you promptly.
+                Tell us how we can help. We&apos;ll send your inquiry to our Customer Care team and email you a confirmation.
               </p>
             </div>
 
             <AnimatePresence mode="wait">
               {!isSuccess ? (
                 <motion.form key="form" onSubmit={handleSubmit} className="space-y-4" noValidate>
+                  <div className="absolute -left-[10000px] top-auto h-px w-px overflow-hidden" aria-hidden="true">
+                    <label htmlFor="website">Leave this field empty</label>
+                    <input
+                      id="website"
+                      name="website"
+                      type="text"
+                      tabIndex={-1}
+                      autoComplete="off"
+                      value={formValues.website}
+                      onChange={(e) => updateFormValue("website", e.target.value)}
+                    />
+                  </div>
                   {/* Name & Phone Grid */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="flex flex-col gap-1">
@@ -480,8 +556,13 @@ export default function CustomerCareView({
                       <input
                         type="text"
                         id="name"
+                        name="name"
+                        autoComplete="name"
+                        required
+                        maxLength={120}
                         value={formValues.name}
-                        onChange={(e) => setFormValues({ ...formValues, name: e.target.value })}
+                        onChange={(e) => updateFormValue("name", e.target.value)}
+                        aria-invalid={Boolean(errors.name)}
                         className={`w-full rounded-xl border bg-[var(--bg-base)] px-3.5 py-2.5 text-sm text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:outline-none focus:ring-2 focus:ring-amber-500 transition ${
                           errors.name ? "border-red-500" : "border-[var(--surface-border)]"
                         }`}
@@ -497,14 +578,40 @@ export default function CustomerCareView({
                       <input
                         type="email"
                         id="email"
+                        name="email"
+                        autoComplete="email"
+                        required
+                        maxLength={254}
                         value={formValues.email}
-                        onChange={(e) => setFormValues({ ...formValues, email: e.target.value })}
+                        onChange={(e) => updateFormValue("email", e.target.value)}
+                        aria-invalid={Boolean(errors.email)}
                         className={`w-full rounded-xl border bg-[var(--bg-base)] px-3.5 py-2.5 text-sm text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:outline-none focus:ring-2 focus:ring-amber-500 transition ${
                           errors.email ? "border-red-500" : "border-[var(--surface-border)]"
                         }`}
                         placeholder="you@example.com"
                       />
                       {errors.email && <p className="text-xs text-red-500">{errors.email}</p>}
+                    </div>
+
+                    <div className="flex flex-col gap-1">
+                      <label htmlFor="phone" className="text-xs font-semibold text-[var(--text-secondary)]">
+                        Phone Number (Optional)
+                      </label>
+                      <input
+                        type="tel"
+                        id="phone"
+                        name="phone"
+                        autoComplete="tel"
+                        maxLength={40}
+                        value={formValues.phone}
+                        onChange={(e) => updateFormValue("phone", e.target.value)}
+                        aria-invalid={Boolean(errors.phone)}
+                        className={`w-full rounded-xl border bg-[var(--bg-base)] px-3.5 py-2.5 text-sm text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:outline-none focus:ring-2 focus:ring-amber-500 transition ${
+                          errors.phone ? "border-red-500" : "border-[var(--surface-border)]"
+                        }`}
+                        placeholder="e.g. 097 666 6611"
+                      />
+                      {errors.phone && <p className="text-xs text-red-500">{errors.phone}</p>}
                     </div>
                   </div>
 
@@ -516,8 +623,9 @@ export default function CustomerCareView({
                       </label>
                       <select
                         id="topic"
+                        name="topic"
                         value={formValues.topic}
-                        onChange={(e) => setFormValues({ ...formValues, topic: e.target.value })}
+                        onChange={(e) => updateFormValue("topic", e.target.value)}
                         className="w-full rounded-xl border border-[var(--surface-border)] bg-[var(--bg-base)] px-3.5 py-2.5 text-sm text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-amber-500 transition"
                       >
                         <option value="General Inquiry">General Inquiry</option>
@@ -536,8 +644,10 @@ export default function CustomerCareView({
                       <input
                         type="text"
                         id="orderNumber"
+                        name="orderNumber"
+                        maxLength={100}
                         value={formValues.orderNumber}
-                        onChange={(e) => setFormValues({ ...formValues, orderNumber: e.target.value })}
+                        onChange={(e) => updateFormValue("orderNumber", e.target.value)}
                         className="w-full rounded-xl border border-[var(--surface-border)] bg-[var(--bg-base)] px-3.5 py-2.5 text-sm text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:outline-none focus:ring-2 focus:ring-amber-500 transition"
                         placeholder="e.g. #1024"
                       />
@@ -551,9 +661,13 @@ export default function CustomerCareView({
                     </label>
                     <textarea
                       id="message"
+                      name="message"
                       rows={4}
+                      required
+                      maxLength={5000}
                       value={formValues.message}
-                      onChange={(e) => setFormValues({ ...formValues, message: e.target.value })}
+                      onChange={(e) => updateFormValue("message", e.target.value)}
+                      aria-invalid={Boolean(errors.message)}
                       className={`w-full rounded-xl border bg-[var(--bg-base)] px-3.5 py-2.5 text-sm text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:outline-none focus:ring-2 focus:ring-amber-500 transition resize-none ${
                         errors.message ? "border-red-500" : "border-[var(--surface-border)]"
                       }`}
@@ -561,6 +675,16 @@ export default function CustomerCareView({
                     />
                     {errors.message && <p className="text-xs text-red-500">{errors.message}</p>}
                   </div>
+
+                  {submitError && (
+                    <div
+                      role="alert"
+                      className="flex items-start gap-2 rounded-xl border border-red-500/30 bg-red-500/5 px-4 py-3 text-sm text-red-600"
+                    >
+                      <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+                      <span>{submitError}</span>
+                    </div>
+                  )}
 
                   {/* Submit Button */}
                   <button
@@ -571,12 +695,12 @@ export default function CustomerCareView({
                     {isSubmitting ? (
                       <>
                         <Loader2 className="h-4 w-4 animate-spin" />
-                        <span>Submitting Ticket...</span>
+                        <span>Sending Message...</span>
                       </>
                     ) : (
                       <>
                         <MessageSquare className="h-4 w-4" />
-                        <span>Send Ticket to Customer Care</span>
+                        <span>Send Message</span>
                       </>
                     )}
                   </button>
@@ -591,12 +715,18 @@ export default function CustomerCareView({
                   <div className="inline-flex p-4 bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 rounded-full mb-4">
                     <CheckCircle className="h-10 w-10" />
                   </div>
-                  <h3 className="text-xl font-bold text-[var(--text-primary)] mb-2">Ticket Submitted Successfully!</h3>
+                  <h3 className="text-xl font-bold text-[var(--text-primary)] mb-2">Message sent successfully!</h3>
                   <p className="text-xs sm:text-sm text-[var(--text-secondary)] max-w-md mx-auto mb-6 leading-relaxed">
-                    Thank you for contacting SYA Customer Care. A representative will review your message and reach out to your provided email address shortly.
+                    {confirmationSent
+                      ? "Thank you for contacting SYA Customer Care. We sent a confirmation to your email, and our team will respond as soon as possible."
+                      : "Thank you for contacting SYA Customer Care. We received your message, but could not send the confirmation email. Our team will respond as soon as possible."}
                   </p>
                   <button
-                    onClick={() => setIsSuccess(false)}
+                    onClick={() => {
+                      setIsSuccess(false)
+                      setConfirmationSent(true)
+                      setSubmitError(null)
+                    }}
                     className="px-6 py-2.5 rounded-full border border-[var(--surface-border)] hover:bg-[var(--bg-base)] text-xs font-semibold text-[var(--text-primary)] transition"
                   >
                     Submit another inquiry
