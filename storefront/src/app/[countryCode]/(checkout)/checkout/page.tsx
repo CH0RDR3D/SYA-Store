@@ -10,6 +10,7 @@ import { enrichLineItems, retrieveCart } from "@lib/data/cart"
 import { safeRetrieveCart, safeGetCustomer } from "@lib/data/checkout-safety"
 import { HttpTypes } from "@medusajs/types"
 import { getCustomer } from "@lib/data/customer"
+import FeedbackBanner from "@modules/common/components/feedback-banner"
 
 export const metadata: Metadata = {
   title: "Checkout",
@@ -81,6 +82,11 @@ export default async function Checkout({
         >
           <CheckoutSummary cart={cart} />
         </CheckoutErrorBoundary>
+      </div>
+
+      {/* Customer Feedback Banner */}
+      <div className="mt-12">
+        <FeedbackBanner />
       </div>
     </div>
   )

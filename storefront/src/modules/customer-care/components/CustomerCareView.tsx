@@ -24,6 +24,7 @@ import {
   Clock,
 } from "lucide-react"
 import LocalizedClientLink from "@modules/common/components/localized-client-link"
+import FeedbackBanner from "@modules/common/components/feedback-banner"
 
 const fadeUp = {
   hidden: { opacity: 0, y: 20 },
@@ -737,6 +738,11 @@ export default function CustomerCareView({
           </div>
 
         </div>
+      </section>
+
+      {/* ── CUSTOMER FEEDBACK BANNER ── */}
+      <section className="content-container max-w-6xl mx-auto px-4 sm:px-6 pt-16">
+        <FeedbackBanner />
       </section>
     </div>
   )

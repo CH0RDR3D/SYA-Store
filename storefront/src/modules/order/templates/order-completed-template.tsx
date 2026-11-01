@@ -10,6 +10,7 @@ import ShippingDetails from "@modules/order/components/shipping-details"
 import PaymentDetails from "@modules/order/components/payment-details"
 import CheckoutStepIndicator from "@modules/checkout/components/step-indicator"
 import { HttpTypes } from "@medusajs/types"
+import FeedbackBanner from "@modules/common/components/feedback-banner"
 
 type OrderCompletedTemplateProps = {
   order: HttpTypes.StoreOrder
@@ -48,6 +49,11 @@ export default async function OrderCompletedTemplate({
           <ShippingDetails order={order} />
           <PaymentDetails order={order} />
           <Help />
+        </div>
+
+        {/* Post-Purchase Customer Feedback Banner */}
+        <div className="w-full max-w-4xl">
+          <FeedbackBanner />
         </div>
       </div>
     </div>

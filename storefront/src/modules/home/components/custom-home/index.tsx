@@ -6,6 +6,7 @@ import ProductGrid from "./Product-Grid"
 import EditorsPickCarousel from "../editor-picks"
 import CategoryCarousel from "../category-carousel"
 import CollectionsPreview from "../collections-preview"
+import FeedbackBanner from "@modules/common/components/feedback-banner"
 import Link from "next/link"
 import { useParams, useRouter } from "next/navigation"
 import { HttpTypes } from "@medusajs/types"
@@ -127,6 +128,9 @@ export default function CustomHomeLayout({
         </form>
       </div>
 
+      {/* ── Feedback Banner Strip ────────────────────────────────── */}
+      <FeedbackBanner containerClassName="max-w-7xl mx-auto px-4 mt-6" />
+
       {/* ── Featured Collections Interactive Preview ─────────────── */}
       <CollectionsPreview
         collections={collections}
@@ -141,42 +145,6 @@ export default function CustomHomeLayout({
         products={products}
         countryCode={countryCode}
       />
-
-
-
-      {/* ── Promo Banner Strip ──────────────────────────────────── */}
-      <div className="max-w-7xl mx-auto px-4 mt-6">
-        <div
-          className="relative w-full rounded-2xl overflow-hidden flex items-center justify-between px-8 py-6 md:py-8"
-          style={{
-            background: "linear-gradient(135deg, #1a1200 0%, #2a1f00 50%, #1a1200 100%)",
-            border: "1px solid rgba(251,191,36,0.2)",
-          }}
-        >
-          <div className="relative z-10 max-w-lg">
-            <p className="text-amber-400 text-xs uppercase tracking-widest font-semibold mb-2">Limited Time</p>
-            <h3 className="text-2xl md:text-3xl font-bold text-white mb-3">
-              Free Pickup at Our Office in Makeni Bonaventure!
-            </h3>
-            <p className="text-gray-300 text-sm mb-5">
-              Select "Store Pickup" during checkout — no delivery fee, ready same day.
-            </p>
-            <Link
-              href={`/${countryCode}/store`}
-              className="inline-flex items-center gap-2 px-6 py-2.5 bg-amber-400 hover:bg-amber-300 text-black text-sm font-bold rounded-lg transition hover:scale-105 shadow-lg shadow-amber-400/20"
-            >
-              Shop & Pick Up
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-              </svg>
-            </Link>
-          </div>
-
-          {/* Decorative glow orbs */}
-          <div className="absolute top-0 right-0 w-64 h-64 rounded-full opacity-20 pointer-events-none" style={{ background: "radial-gradient(circle, #fbbf24, transparent)", transform: "translate(40%, -40%)" }} />
-          <div className="absolute bottom-0 right-1/4 w-48 h-48 rounded-full opacity-10 pointer-events-none" style={{ background: "radial-gradient(circle, #fbbf24, transparent)", transform: "translateY(40%)" }} />
-        </div>
-      </div>
 
       {/* ── Product Grids & Carousels ──────────────────────────── */}
       <div className="max-w-7xl mx-auto px-4 mt-10 space-y-8">
