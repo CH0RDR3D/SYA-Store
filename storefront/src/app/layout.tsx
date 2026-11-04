@@ -4,8 +4,65 @@ import "styles/globals.css"
 import AuthProvider from "@modules/common/components/auth-provider"
 import ThemeProvider from "@modules/layout/components/theme-provider"
 
+const BASE_URL = getBaseURL()
+
 export const metadata: Metadata = {
-  metadataBase: new URL(getBaseURL()),
+  metadataBase: new URL(BASE_URL),
+  title: {
+    default: "SYA Store — Lusaka's Premier Online Shopping Destination",
+    template: "%s | SYA Store",
+  },
+  description:
+    "SYA Store is Lusaka's premier online shopping destination. Shop electronics, fashion, beauty, solar products, home essentials and more. Fast delivery across Zambia.",
+  keywords: [
+    "SYA Store",
+    "online shopping Zambia",
+    "Lusaka online store",
+    "electronics Lusaka",
+    "fashion Zambia",
+    "solar products Zambia",
+    "beauty products Lusaka",
+    "home appliances Zambia",
+  ],
+  authors: [{ name: "SYA Online Trading", url: BASE_URL }],
+  creator: "SYA Online Trading",
+  publisher: "SYA Online Trading",
+  openGraph: {
+    type: "website",
+    locale: "en_ZM",
+    url: BASE_URL,
+    siteName: "SYA Store",
+    title: "SYA Store — Lusaka's Premier Online Shopping Destination",
+    description:
+      "Shop electronics, fashion, beauty, solar products, home essentials and more. Fast delivery across Zambia.",
+    images: [
+      {
+        url: "/og-image.png",
+        width: 1200,
+        height: 630,
+        alt: "SYA Store — Lusaka's Premier Online Shopping Destination",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "SYA Store — Lusaka's Premier Online Shopping Destination",
+    description:
+      "Shop electronics, fashion, beauty, solar products and more. Fast delivery across Zambia.",
+    images: ["/og-image.png"],
+    creator: "@syastore",
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
+  },
 }
 
 const themeInitScript = `(() => {
