@@ -1,10 +1,8 @@
 "use client"
 
 import React, { useState, useEffect } from "react"
-
-const GOOGLE_FORM_URL =
-  "https://docs.google.com/forms/d/e/1FAIpQLSevQ_jBCYSqDy71G232pRp6WWTH2PiPK4l7RQ04rD6npi72pA/viewform"
-const GOOGLE_FORM_EMBED_URL = `${GOOGLE_FORM_URL}?embedded=true`
+import { useRouter } from "next/navigation"
+import FeedbackSurvey from "@modules/common/components/feedback-survey"
 
 interface FeedbackBannerProps {
   className?: string
@@ -16,6 +14,7 @@ export default function FeedbackBanner({
   containerClassName = "",
 }: FeedbackBannerProps) {
   const [feedbackModalOpen, setFeedbackModalOpen] = useState(false)
+  const router = useRouter()
 
   // Close modal on Escape and lock background scrolling
   useEffect(() => {
@@ -33,7 +32,7 @@ export default function FeedbackBanner({
 
   const handleFeedbackClick = () => {
     if (typeof window !== "undefined" && window.innerWidth < 768) {
-      window.open(GOOGLE_FORM_URL, "_blank")
+      router.push("/feedback")
       return
     }
     setFeedbackModalOpen(true)
@@ -88,26 +87,17 @@ export default function FeedbackBanner({
         />
       </div>
 
-      {/* Feedback Modal */}
+      {/* Feedback Modal — full-screen takeover */}
       {feedbackModalOpen && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4 backdrop-blur-sm"
-          onClick={() => setFeedbackModalOpen(false)}
-        >
-          <div
-            onClick={(e) => e.stopPropagation()}
-            className="bg-zinc-900 border border-amber-500/20 rounded-2xl w-full max-w-5xl max-h-[90vh] flex flex-col overflow-hidden shadow-2xl"
-          >
-            <div className="flex items-center justify-between px-5 py-4 border-b border-white/10 shrink-0">
+        <div className="fixed inset-0 z-[9999] bg-black/90 backdrop-blur-sm flex flex-col">
+          {/* Modal panel */}
+          <div className="flex-1 bg-zinc-950 flex flex-col overflow-hidden">
+            {/* Header bar */}
+            <div className="flex items-center justify-between px-5 py-4 border-b border-zinc-800 shrink-0">
               <div>
-                <h3 className="text-lg font-semibold text-white">
-                  Customer Feedback Form
-                </h3>
-                <p className="text-sm text-zinc-400">
-                  Help us improve your shopping experience
-                </p>
+                <h3 className="text-lg font-semibold text-white">Customer Feedback Form</h3>
+                <p className="text-sm text-zinc-400">Help us improve your shopping experience</p>
               </div>
-
               <button
                 type="button"
                 onClick={() => setFeedbackModalOpen(false)}
@@ -118,16 +108,9 @@ export default function FeedbackBanner({
               </button>
             </div>
 
-            <div className="flex-1 w-full overflow-y-auto bg-zinc-950">
-              <iframe
-                src={GOOGLE_FORM_EMBED_URL}
-                width="100%"
-                height="700"
-                className="w-full border-0 min-h-[500px]"
-                title="Customer Feedback Form"
-              >
-                Loading...
-              </iframe>
+            {/* Survey component fills the rest */}
+            <div className="flex-1 flex flex-col overflow-hidden">
+              <FeedbackSurvey onClose={() => setFeedbackModalOpen(false)} />
             </div>
           </div>
         </div>
@@ -135,4 +118,3 @@ export default function FeedbackBanner({
     </div>
   )
 }
-
