@@ -1,6 +1,5 @@
 import { getBaseURL } from "@lib/util/env"
 import { Metadata } from "next"
-import Script from "next/script"
 import "styles/globals.css"
 import AuthProvider from "@modules/common/components/auth-provider"
 import ThemeProvider from "@modules/layout/components/theme-provider"
@@ -79,22 +78,9 @@ const themeInitScript = `(() => {
   } catch {}
 })();`
 
-export default function RootLayout(props: { children: React.ReactNode }) {
-  return (
-    <html lang="en" suppressHydrationWarning>
-      <head>
-        <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
-      </head>
-      <body className="min-h-screen bg-[var(--app-bg)] text-[var(--app-fg)] transition-colors duration-300">
-        <AuthProvider>
-          <ThemeProvider>
-            <main className="relative">{props.children}</main>
-          </ThemeProvider>
-        </AuthProvider>
+const META_PIXEL_ID = "1182225574369880"
 
-        {/* ── Meta Pixel ───────────────────────────────────────── */}
-        <Script id="meta-pixel" strategy="afterInteractive">
-          {`!function(f,b,e,v,n,t,s)
+const metaPixelScript = `!function(f,b,e,v,n,t,s)
 {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
 n.callMethod.apply(n,arguments):n.queue.push(arguments)};
 if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
@@ -102,19 +88,33 @@ n.queue=[];t=b.createElement(e);t.async=!0;
 t.src=v;s=b.getElementsByTagName(e)[0];
 s.parentNode.insertBefore(t,s)}(window, document,'script',
 'https://connect.facebook.net/en_US/fbevents.js');
-fbq('init', '1182225574369880');
-fbq('track', 'PageView');`}
-        </Script>
+fbq('init', '${META_PIXEL_ID}');
+fbq('track', 'PageView');`
+
+export default function RootLayout(props: { children: React.ReactNode }) {
+  return (
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        {/* Theme init — must run before first paint to avoid flash */}
+        <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
+        {/* Meta Pixel base code — placed in <head> per Meta's instructions */}
+        <script dangerouslySetInnerHTML={{ __html: metaPixelScript }} />
         <noscript>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             height="1"
             width="1"
             style={{ display: "none" }}
-            src="https://www.facebook.com/tr?id=1182225574369880&ev=PageView&noscript=1"
+            src={`https://www.facebook.com/tr?id=${META_PIXEL_ID}&ev=PageView&noscript=1`}
             alt=""
           />
         </noscript>
+      </head>
+      <body className="min-h-screen bg-[var(--app-bg)] text-[var(--app-fg)] transition-colors duration-300">
+        <AuthProvider>
+          <ThemeProvider>
+            <main className="relative">{props.children}</main>
+          </ThemeProvider>
+        </AuthProvider>
       </body>
     </html>
   )
