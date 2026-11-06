@@ -16,6 +16,8 @@ const POSTHOG_HOST =
   process.env.NEXT_PUBLIC_POSTHOG_HOST || "https://us.i.posthog.com"
 const META_PIXEL_ID =
   process.env.NEXT_PUBLIC_META_PIXEL_ID || "1182225574369880"
+const GA_MEASUREMENT_ID =
+  process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID || "G-B4RQ6KLPR5"
 
 const META_PIXEL_BOOTSTRAP = `!function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,document,'script','https://connect.facebook.net/en_US/fbevents.js');`
 
@@ -62,6 +64,20 @@ export default function AnalyticsProvider({
         analytics_consent: analyticsAllowed ? "granted" : "denied",
         marketing_consent: marketingAllowed ? "granted" : "denied",
       })
+      window.gtag?.("consent", "update", {
+        analytics_storage: analyticsAllowed ? "granted" : "denied",
+      })
+      window.gtag?.("consent", "update", {
+        ad_storage: marketingAllowed ? "granted" : "denied",
+        ad_user_data: marketingAllowed ? "granted" : "denied",
+        ad_personalization: marketingAllowed ? "granted" : "denied",
+      })
+      if (analyticsAllowed) {
+        window.gtag?.("config", GA_MEASUREMENT_ID, {
+          send_page_view: true,
+          anonymize_ip: true,
+        })
+      }
 
       if (analyticsAllowed && POSTHOG_KEY && !posthog.__loaded) {
         posthog.init(POSTHOG_KEY, {

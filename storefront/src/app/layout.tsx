@@ -88,7 +88,8 @@ export default function RootLayout(props: { children: React.ReactNode }) {
         <script
           dangerouslySetInnerHTML={{
             __html: `window.dataLayer=window.dataLayer||[];
-window.dataLayer.push({'gtm.start':new Date().getTime(),event:'gtm.js'});`,
+function gtag(){window.dataLayer.push(arguments);}
+gtag('consent','default',{analytics_storage:'denied',ad_storage:'denied',ad_user_data:'denied',ad_personalization:'denied',wait_for_update:500});`,
           }}
         />
         <script async src={`https://www.googletagmanager.com/gtm.js?id=${GTM_ID}`} />
