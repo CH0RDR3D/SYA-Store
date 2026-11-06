@@ -78,6 +78,14 @@ const themeInitScript = `(() => {
   } catch {}
 })();`
 
+const GTM_ID = "GTM-TVV7S9H8"
+
+const gtmScript = `
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+`
+
 const META_PIXEL_ID = "1182225574369880"
 
 const metaPixelScript = `!function(f,b,e,v,n,t,s)
@@ -95,6 +103,10 @@ export default function RootLayout(props: { children: React.ReactNode }) {
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
+        {/* Google Tag Manager / Google Tag — immediately after <head> */}
+        <script async src={`https://www.googletagmanager.com/gtm.js?id=${GTM_ID}`} />
+        <script dangerouslySetInnerHTML={{ __html: gtmScript }} />
+
         {/* Theme init — must run before first paint to avoid flash */}
         <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
         {/* Meta Pixel base code — placed in <head> per Meta's instructions */}
@@ -110,6 +122,15 @@ export default function RootLayout(props: { children: React.ReactNode }) {
         </noscript>
       </head>
       <body className="min-h-screen bg-[var(--app-bg)] text-[var(--app-fg)] transition-colors duration-300">
+        {/* Google Tag Manager (noscript) */}
+        <noscript>
+          <iframe
+            src={`https://www.googletagmanager.com/ns.html?id=${GTM_ID}`}
+            height="0"
+            width="0"
+            style={{ display: "none", visibility: "hidden" }}
+          />
+        </noscript>
         <AuthProvider>
           <ThemeProvider>
             <main className="relative">{props.children}</main>
