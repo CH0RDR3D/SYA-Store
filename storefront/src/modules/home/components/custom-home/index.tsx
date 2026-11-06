@@ -205,7 +205,7 @@ export default function CustomHomeLayout({
             color: "var(--text-primary)",
           }}
         >
-          Browse Full Catalogue →
+          Browse Full Catalogue Here →
         </Link>
       </div>
     </div>

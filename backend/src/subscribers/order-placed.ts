@@ -20,6 +20,25 @@ export default async function orderPlacedHandler({
       relations: ['items', 'summary', 'shipping_address']
     })
 
+    const cartId = (order as any).cart_id
+    if (cartId) {
+      const cartModuleService = container.resolve(Modules.CART) as any
+      const cart = await cartModuleService.retrieveCart(cartId)
+      const attribution = Object.fromEntries(
+        Object.entries(cart.metadata || {}).filter(([key]) =>
+          key.startsWith('traffic_')
+        )
+      )
+      if (Object.keys(attribution).length) {
+        await orderModuleService.updateOrders(data.id, {
+          metadata: {
+            ...((order.metadata || {}) as Record<string, unknown>),
+            ...attribution,
+          },
+        })
+      }
+    }
+
     const shippingAddress = order.shipping_address
       ? (orderModuleService as any).orderAddressService_
         ? await (orderModuleService as any).orderAddressService_.retrieve(order.shipping_address.id).catch(() => order.shipping_address)

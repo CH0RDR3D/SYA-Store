@@ -193,6 +193,19 @@ export async function addToCart({
     .catch(medusaError)
 }
 
+export async function attachUtmToCart(utmData: Record<string, any>) {
+  try {
+    const cartId = await getCartId()
+    if (!cartId || !utmData || Object.keys(utmData).length === 0) return null
+    return await updateCart({
+      metadata: utmData,
+    })
+  } catch (e) {
+    console.debug("[Analytics] Could not attach UTM attribution to cart:", e)
+    return null
+  }
+}
+
 export async function updateLineItem({
   lineId,
   quantity,

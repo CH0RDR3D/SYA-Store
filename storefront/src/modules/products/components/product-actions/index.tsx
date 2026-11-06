@@ -12,6 +12,7 @@ import OptionSelect from "@modules/products/components/product-actions/option-se
 import MobileActions from "./mobile-actions"
 import ProductPrice from "../product-price"
 import { addToCart } from "@lib/data/cart"
+import { trackAddToCart } from "@lib/analytics"
 import { HttpTypes } from "@medusajs/types"
 
 type ProductActionsProps = {
@@ -137,6 +138,16 @@ export default function ProductActions({
         quantity,
         countryCode,
       })
+
+      trackAddToCart({
+        id: product.id,
+        title: product.title || "",
+        category: product.categories?.[0]?.name,
+        price: selectedVariant?.calculated_price?.calculated_amount ?? 0,
+        quantity,
+        currency: region.currency_code?.toUpperCase() || "ZMW",
+      })
+
       router.refresh()
     } catch (error) {
       console.error("Failed to add item to cart", error)

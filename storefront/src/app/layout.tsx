@@ -3,6 +3,8 @@ import { Metadata } from "next"
 import "styles/globals.css"
 import AuthProvider from "@modules/common/components/auth-provider"
 import ThemeProvider from "@modules/layout/components/theme-provider"
+import AnalyticsProvider from "@modules/common/components/analytics-provider"
+import CookieConsentBanner from "@modules/common/components/cookie-consent"
 
 const BASE_URL = getBaseURL()
 
@@ -78,62 +80,20 @@ const themeInitScript = `(() => {
   } catch {}
 })();`
 
-const GTM_ID = "GTM-TVV7S9H8"
-
-const gtmScript = `
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-`
-
-const META_PIXEL_ID = "1182225574369880"
-
-const metaPixelScript = `!function(f,b,e,v,n,t,s)
-{if(f.fbq)return;n=f.fbq=function(){n.callMethod?
-n.callMethod.apply(n,arguments):n.queue.push(arguments)};
-if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
-n.queue=[];t=b.createElement(e);t.async=!0;
-t.src=v;s=b.getElementsByTagName(e)[0];
-s.parentNode.insertBefore(t,s)}(window, document,'script',
-'https://connect.facebook.net/en_US/fbevents.js');
-fbq('init', '${META_PIXEL_ID}');
-fbq('track', 'PageView');`
-
 export default function RootLayout(props: { children: React.ReactNode }) {
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        {/* Google Tag Manager / Google Tag — immediately after <head> */}
-        <script async src={`https://www.googletagmanager.com/gtm.js?id=${GTM_ID}`} />
-        <script dangerouslySetInnerHTML={{ __html: gtmScript }} />
-
         {/* Theme init — must run before first paint to avoid flash */}
         <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
-        {/* Meta Pixel base code — placed in <head> per Meta's instructions */}
-        <script dangerouslySetInnerHTML={{ __html: metaPixelScript }} />
-        <noscript>
-          <img
-            height="1"
-            width="1"
-            style={{ display: "none" }}
-            src={`https://www.facebook.com/tr?id=${META_PIXEL_ID}&ev=PageView&noscript=1`}
-            alt=""
-          />
-        </noscript>
       </head>
       <body className="min-h-screen bg-[var(--app-bg)] text-[var(--app-fg)] transition-colors duration-300">
-        {/* Google Tag Manager (noscript) */}
-        <noscript>
-          <iframe
-            src={`https://www.googletagmanager.com/ns.html?id=${GTM_ID}`}
-            height="0"
-            width="0"
-            style={{ display: "none", visibility: "hidden" }}
-          />
-        </noscript>
         <AuthProvider>
           <ThemeProvider>
-            <main className="relative">{props.children}</main>
+            <AnalyticsProvider>
+              <main className="relative">{props.children}</main>
+              <CookieConsentBanner />
+            </AnalyticsProvider>
           </ThemeProvider>
         </AuthProvider>
       </body>

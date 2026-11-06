@@ -10,6 +10,7 @@ import SkeletonRelatedProducts from "@modules/skeletons/templates/skeleton-relat
 import LocalizedClientLink from "@modules/common/components/localized-client-link"
 import { notFound } from "next/navigation"
 import ProductActionsWrapper from "./product-actions-wrapper"
+import ProductAnalyticsTracker from "@modules/products/components/product-analytics-tracker"
 import { HttpTypes } from "@medusajs/types"
 
 type ProductTemplateProps = {
@@ -29,6 +30,7 @@ const ProductTemplate: React.FC<ProductTemplateProps> = ({
 
   return (
     <>
+      <ProductAnalyticsTracker product={product} currencyCode={region.currency_code} />
       <div className="content-container pt-6 pb-2">
         <LocalizedClientLink
           href="/store"
