@@ -14,7 +14,6 @@ import { captureUtmParameters } from "@lib/analytics/utm"
 const POSTHOG_KEY = process.env.NEXT_PUBLIC_POSTHOG_KEY || ""
 const POSTHOG_HOST =
   process.env.NEXT_PUBLIC_POSTHOG_HOST || "https://us.i.posthog.com"
-const GA_MEASUREMENT_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID || ""
 const META_PIXEL_ID =
   process.env.NEXT_PUBLIC_META_PIXEL_ID || "1182225574369880"
 
@@ -45,7 +44,6 @@ export default function AnalyticsProvider({
 }: {
   children: React.ReactNode
 }) {
-  const [analyticsConsent, setAnalyticsConsent] = useState(false)
   const [marketingConsent, setMarketingConsent] = useState(false)
 
   useEffect(() => {
@@ -57,8 +55,13 @@ export default function AnalyticsProvider({
       const analyticsAllowed = Boolean(consent?.analytics)
       const marketingAllowed = Boolean(consent?.marketing)
 
-      setAnalyticsConsent(analyticsAllowed)
       setMarketingConsent(marketingAllowed)
+      window.dataLayer = window.dataLayer || []
+      window.dataLayer.push({
+        event: "analytics_consent_update",
+        analytics_consent: analyticsAllowed ? "granted" : "denied",
+        marketing_consent: marketingAllowed ? "granted" : "denied",
+      })
 
       if (analyticsAllowed && POSTHOG_KEY && !posthog.__loaded) {
         posthog.init(POSTHOG_KEY, {
@@ -81,22 +84,6 @@ export default function AnalyticsProvider({
 
   return (
     <>
-      {analyticsConsent && GA_MEASUREMENT_ID && (
-        <>
-          <Script id="google-tag-config" strategy="afterInteractive">
-            {`window.dataLayer = window.dataLayer || [];
-function gtag(){window.dataLayer.push(arguments);}
-window.gtag = window.gtag || gtag;
-gtag('js', new Date());
-gtag('config', '${GA_MEASUREMENT_ID}', { send_page_view: false });`}
-          </Script>
-          <Script
-            id="google-tag"
-            src={`https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`}
-            strategy="afterInteractive"
-          />
-        </>
-      )}
       {marketingConsent && META_PIXEL_ID && (
         <>
           <Script id="meta-pixel-bootstrap" strategy="afterInteractive">

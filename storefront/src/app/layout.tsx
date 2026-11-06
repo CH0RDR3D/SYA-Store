@@ -7,6 +7,7 @@ import AnalyticsProvider from "@modules/common/components/analytics-provider"
 import CookieConsentBanner from "@modules/common/components/cookie-consent"
 
 const BASE_URL = getBaseURL()
+const GTM_ID = "GTM-P9N3JSM4"
 
 export const metadata: Metadata = {
   metadataBase: new URL(BASE_URL),
@@ -84,10 +85,26 @@ export default function RootLayout(props: { children: React.ReactNode }) {
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `window.dataLayer=window.dataLayer||[];
+window.dataLayer.push({'gtm.start':new Date().getTime(),event:'gtm.js'});`,
+          }}
+        />
+        <script async src={`https://www.googletagmanager.com/gtm.js?id=${GTM_ID}`} />
         {/* Theme init — must run before first paint to avoid flash */}
         <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
       </head>
       <body className="min-h-screen bg-[var(--app-bg)] text-[var(--app-fg)] transition-colors duration-300">
+        <noscript>
+          <iframe
+            src={`https://www.googletagmanager.com/ns.html?id=${GTM_ID}`}
+            height="0"
+            width="0"
+            style={{ display: "none", visibility: "hidden" }}
+            title="Google Tag Manager"
+          />
+        </noscript>
         <AuthProvider>
           <ThemeProvider>
             <AnalyticsProvider>
