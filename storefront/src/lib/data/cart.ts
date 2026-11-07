@@ -620,7 +620,7 @@ export async function initiatePaymentSession(
 
 export async function applyPromotions(codes: string[]) {
   const customer = await retrieveCustomer()
-  if (!customer) {
+  if (codes.length > 0 && !customer) {
     throw new Error("Sign in or create an account to use promotion codes")
   }
 

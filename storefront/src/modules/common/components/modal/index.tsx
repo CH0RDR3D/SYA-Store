@@ -65,7 +65,7 @@ const Modal = ({
                     "max-w-xl": size === "medium",
                     "max-w-3xl": size === "large",
                     "bg-transparent shadow-none": search,
-                    "bg-white shadow-xl border rounded-rounded": !search,
+                    "bg-white dark:bg-zinc-900 text-[var(--text-primary)] shadow-xl border border-[var(--surface-border)] rounded-lg": !search,
                   }
                 )}
               >

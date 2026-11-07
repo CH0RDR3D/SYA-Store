@@ -3,6 +3,7 @@ import type { MedusaNextFunction, MedusaRequest, MedusaResponse } from "@medusaj
 
 type AuthenticatedMedusaRequest = MedusaRequest & {
   auth_context?: { actor_id?: string }
+  body?: { promo_codes?: unknown }
 }
 
 const requireCustomerForPromotions = (
@@ -11,8 +12,9 @@ const requireCustomerForPromotions = (
   next: MedusaNextFunction
 ) => {
   const hasPromoCodes = Object.prototype.hasOwnProperty.call(req.body ?? {}, "promo_codes")
+  const promoCodes = Array.isArray(req.body?.promo_codes) ? req.body.promo_codes : []
 
-  if (!hasPromoCodes || req.auth_context?.actor_id) {
+  if (!hasPromoCodes || promoCodes.length === 0 || req.auth_context?.actor_id) {
     next()
     return
   }

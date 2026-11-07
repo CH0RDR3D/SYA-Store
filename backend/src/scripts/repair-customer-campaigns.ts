@@ -27,6 +27,9 @@ export default async function repairCustomerCampaigns({
   const affected = campaigns.filter((campaign: any) =>
     campaign.budget?.attribute === "customer_id"
   )
+  const orphanedFirstBuyPromotions = (promotions as any[]).filter(
+    (promotion) => promotion.code?.toLowerCase() === "firstbuy"
+  )
 
   logger.info(
     `Found ${affected.length} campaign${affected.length === 1 ? "" : "s"} using customer_id budgets.`
@@ -37,13 +40,31 @@ export default async function repairCustomerCampaigns({
   }
 
   if (!apply) {
-    logger.info("Dry run complete. Run with 'apply' to delete these campaigns.")
+    logger.info(
+      `Found ${orphanedFirstBuyPromotions.length} orphaned firstbuy promotion(s).`
+    )
+    logger.info("Dry run complete. Run with 'apply' to delete these campaigns and promotions.")
     return
   }
 
-  if (affected.length) {
-    await promotionModule.deleteCampaigns(affected.map((campaign: any) => campaign.id))
+  if (orphanedFirstBuyPromotions.length) {
+    await promotionModule.deletePromotions(
+      orphanedFirstBuyPromotions.map((promotion: any) => promotion.id)
+    )
   }
 
-  logger.info("Removed customer_id campaign budgets.")
+  if (affected.length) {
+    const campaignIds = new Set(affected.map((campaign: any) => campaign.id))
+    const orphanedPromotionIds = (promotions as any[])
+      .filter((promotion) => promotion.campaign_id && campaignIds.has(promotion.campaign_id))
+      .map((promotion) => promotion.id)
+
+    if (orphanedPromotionIds.length) {
+      await promotionModule.deletePromotions(orphanedPromotionIds)
+    }
+
+    await promotionModule.deleteCampaigns([...campaignIds])
+  }
+
+  logger.info("Removed customer_id campaign budgets and their promotions.")
 }

@@ -802,7 +802,7 @@ const Shipping: React.FC<ShippingProps> = ({
 
               <div className="text-xs text-ui-fg-subtle bg-white/60 p-3 rounded-xl border border-emerald-100/60">
                 <p className="font-medium text-ui-fg-base mb-0.5">📦 Collection Hours & Instructions:</p>
-                <p>Monday – Saturday: 08:30 – 17:30. Orders are typically prepared and ready for collection within 1–2 hours.</p>
+                <p>Everyday: 08:30 – 17:30. Orders are typically prepared, delivered and/or ready for collection within 1–2 hours.</p>
               </div>
             </div>
           )}
@@ -845,7 +845,7 @@ const Shipping: React.FC<ShippingProps> = ({
                 Fulfillment Method
               </Text>
               <Text className="txt-medium text-ui-fg-subtle">
-                🏬 Store Pickup (Free) — {warehouse.name || "Lusaka Central Warehouse"}
+                Store Pickup (Free) — {warehouse.name || "Lusaka Central Warehouse"}
               </Text>
             </div>
           )}

@@ -2,15 +2,17 @@
 
 import { Badge, Heading, Input, Label, Text, Tooltip } from "@medusajs/ui"
 import React from "react"
-import { useActionState } from "react"
 
-import { applyPromotions, submitPromotionForm } from "@lib/data/cart"
+import { applyPromotions } from "@lib/data/cart"
 import { convertToLocale } from "@lib/util/money"
 import { InformationCircleSolid } from "@medusajs/icons"
 import { HttpTypes } from "@medusajs/types"
 import Trash from "@modules/common/icons/trash"
 import ErrorMessage from "../error-message"
 import { SubmitButton } from "../submit-button"
+import Modal from "@modules/common/components/modal"
+import { Button } from "@medusajs/ui"
+import LocalizedClientLink from "@modules/common/components/localized-client-link"
 
 type DiscountCodeProps = {
   cart: HttpTypes.StoreCart & {
@@ -20,6 +22,7 @@ type DiscountCodeProps = {
 
 const DiscountCode: React.FC<DiscountCodeProps> = ({ cart }) => {
   const [isOpen, setIsOpen] = React.useState(false)
+  const [showSignInPrompt, setShowSignInPrompt] = React.useState(false)
 
   const { items = [], promotions = [] } = cart
   const removePromotionCode = async (code: string) => {
@@ -43,14 +46,20 @@ const DiscountCode: React.FC<DiscountCodeProps> = ({ cart }) => {
       .filter((promotionCode): promotionCode is string => Boolean(promotionCode))
     codes.push(code.toString())
 
-    await applyPromotions(codes)
-
-    if (input) {
-      input.value = ""
+    try {
+      await applyPromotions(codes)
+      if (input) {
+        input.value = ""
+      }
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error)
+      if (errorMessage.includes("Sign in or create an account")) {
+        setShowSignInPrompt(true)
+        return
+      }
+      throw error
     }
   }
-
-  const [message, formAction] = useActionState(submitPromotionForm, null)
 
   return (
     <div className="w-full bg-[var(--surface-card)] flex flex-col">
@@ -91,12 +100,32 @@ const DiscountCode: React.FC<DiscountCodeProps> = ({ cart }) => {
               </div>
 
               <ErrorMessage
-                error={message}
+                error={null}
                 data-testid="discount-error-message"
               />
             </>
           )}
         </form>
+
+        <Modal
+          isOpen={showSignInPrompt}
+          close={() => setShowSignInPrompt(false)}
+          size="small"
+          data-testid="promotion-sign-in-modal"
+        >
+          <Modal.Title>Join SYA Store for member promos</Modal.Title>
+          <Modal.Description>
+            Create a free account or sign in to apply promotion codes and unlock member-only benefits.
+          </Modal.Description>
+          <Modal.Footer>
+            <LocalizedClientLink href="/account">
+              <Button variant="secondary">Sign in</Button>
+            </LocalizedClientLink>
+            <LocalizedClientLink href="/account">
+              <Button>Create free account</Button>
+            </LocalizedClientLink>
+          </Modal.Footer>
+        </Modal>
 
         {promotions.length > 0 && (
           <div className="w-full flex items-center">
