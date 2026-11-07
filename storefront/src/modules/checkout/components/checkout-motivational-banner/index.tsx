@@ -129,7 +129,7 @@ export default function CheckoutMotivationalBanner({
           </h3>
 
           <p className="text-xs text-[var(--text-secondary)] mt-1 mb-3">
-            Join thousands of SYA Store shoppers and unlock instant member perks:
+            Register to unlock member-only rewards and first-buy promotion benefits:
           </p>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-[var(--text-secondary)]">

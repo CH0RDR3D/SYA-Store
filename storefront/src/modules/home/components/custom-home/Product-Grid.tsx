@@ -4,6 +4,7 @@ import React, { useState } from "react"
 import Image from "next/image"
 import { HttpTypes } from "@medusajs/types"
 import { convertToLocale } from "@lib/util/money"
+import { getProductSubtitle } from "@lib/util/product-subtitle"
 import LocalizedClientLink from "@modules/common/components/localized-client-link"
 
 interface ProductGridProps {
@@ -93,6 +94,11 @@ export function ProductCard({
         <h3 className="text-xs md:text-sm text-[var(--text-secondary)] font-medium line-clamp-2 group-hover:text-[var(--text-primary)] transition leading-snug">
           {product.title}
         </h3>
+        {getProductSubtitle(product) && (
+          <p className="mt-1 text-[11px] leading-snug text-[var(--text-muted)] line-clamp-2">
+            {getProductSubtitle(product)}
+          </p>
+        )}
 
         <div className="mt-auto pt-3 flex items-baseline justify-between">
           <div className="flex flex-col">

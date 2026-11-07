@@ -159,7 +159,17 @@ export async function addToCart({
     ...(await getAuthHeaders()),
   }
 
-  const freshCart = await retrieveCartFresh(cart.id)
+  let freshCart = await retrieveCartFresh(cart.id)
+  const customer = await retrieveCustomer()
+
+  if (customer && !freshCart.customer_id) {
+    await sdk.store.cart.transferCart(cart.id, {}, headers)
+
+    const cartCacheTag = await getCacheTag("carts")
+    revalidateTag(cartCacheTag)
+    freshCart = await retrieveCartFresh(cart.id)
+  }
+
   const existingLine = (freshCart.items || []).find(
     (item) => item.variant_id === variantId
   )
@@ -312,7 +322,7 @@ const retrieveCartFresh = async (cartId: string) => {
       method: "GET",
       query: {
         fields:
-          "id,*items,items.id,items.variant_id,items.product_id,items.quantity,*items.variant,*items.product",
+          "id,customer_id,*items,items.id,items.variant_id,items.product_id,items.quantity,*items.variant,*items.product",
       },
       headers,
       cache: "no-store",
@@ -609,6 +619,11 @@ export async function initiatePaymentSession(
 }
 
 export async function applyPromotions(codes: string[]) {
+  const customer = await retrieveCustomer()
+  if (!customer) {
+    throw new Error("Sign in or create an account to use promotion codes")
+  }
+
   const cartId = await getCartId()
 
   if (!cartId) {
@@ -629,6 +644,49 @@ export async function applyPromotions(codes: string[]) {
       revalidateTag(fulfillmentCacheTag)
     })
     .catch(medusaError)
+}
+
+export async function applyMemberPromotion(
+  cart: HttpTypes.StoreCart | null
+): Promise<HttpTypes.StoreCart | null> {
+  if (!cart) {
+    return null
+  }
+
+  const customer = await retrieveCustomer()
+  const promotions = cart.promotions || []
+  const promoCodes = promotions
+    .map((promotion) => promotion.code)
+    .filter((code): code is string => Boolean(code))
+  const hasMemberPromotion = promoCodes.includes("firstbuy")
+  const nextPromoCodes = customer
+    ? hasMemberPromotion
+      ? promoCodes
+      : [...promoCodes, "firstbuy"]
+    : []
+
+  if (promoCodes.join("|") === nextPromoCodes.join("|")) {
+    return cart
+  }
+
+  const headers = {
+    ...(await getAuthHeaders()),
+  }
+
+  try {
+    await sdk.store.cart.update(
+      cart.id,
+      { promo_codes: nextPromoCodes },
+      {},
+      headers
+    )
+
+    const cartCacheTag = await getCacheTag("carts")
+    revalidateTag(cartCacheTag)
+    return retrieveCart(cart.id, undefined)
+  } catch {
+    return cart
+  }
 }
 
 export async function applyGiftCard(code: string) {

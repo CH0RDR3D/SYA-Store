@@ -4,6 +4,7 @@ import { notFound } from "next/navigation"
 import ProductTemplate from "@modules/products/templates"
 import { getRegion } from "@lib/data/regions"
 import { HttpTypes } from "@medusajs/types"
+import { unstable_cache } from "next/cache"
 
 type Props = {
   params: Promise<{ countryCode: string; handle: string }>
@@ -36,7 +37,7 @@ const fetchProductByHandle = async (
             "x-publishable-api-key": getPublishableApiKey(),
           }
         : undefined,
-      cache: "no-store",
+      next: { revalidate: 60 },
     })
 
     if (!response.ok) {
@@ -53,6 +54,12 @@ const fetchProductByHandle = async (
   }
 }
 
+const getCachedProductByHandle = unstable_cache(
+  fetchProductByHandle,
+  ["store-product-by-handle"],
+  { revalidate: 60 }
+)
+
 export const dynamic = "force-dynamic"
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -63,7 +70,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     notFound()
   }
 
-  const product = await fetchProductByHandle(handle, region.id)
+  const product = await getCachedProductByHandle(handle, region.id)
 
   if (!product) {
     notFound()
@@ -88,7 +95,7 @@ export default async function ProductPage({ params }: Props) {
     notFound()
   }
 
-  const pricedProduct = await fetchProductByHandle(handle, region.id)
+  const pricedProduct = await getCachedProductByHandle(handle, region.id)
   if (!pricedProduct) {
     notFound()
   }

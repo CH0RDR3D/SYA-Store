@@ -1,8 +1,8 @@
 import ItemsTemplate from "./items"
 import Summary from "./summary"
 import EmptyCartMessage from "../components/empty-cart-message"
-import SignInPrompt from "../components/sign-in-prompt"
 import Divider from "@modules/common/components/divider"
+import CheckoutMotivationalBanner from "@modules/checkout/components/checkout-motivational-banner"
 import { HttpTypes } from "@medusajs/types"
 
 const CartTemplate = ({
@@ -20,7 +20,7 @@ const CartTemplate = ({
             <div className="flex flex-col rounded-2xl border border-[var(--surface-border)] bg-[var(--surface-card)] py-6 px-4 small:px-6 gap-y-6">
               {!customer && (
                 <>
-                  <SignInPrompt />
+                  <CheckoutMotivationalBanner customer={customer} />
                   <Divider />
                 </>
               )}

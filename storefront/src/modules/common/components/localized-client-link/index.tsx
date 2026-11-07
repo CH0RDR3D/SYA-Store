@@ -22,9 +22,15 @@ const LocalizedClientLink = ({
 }) => {
   const params = useParams()
   const countryCode = (params?.countryCode as string) || ""
+  const hasCountryPrefix = /^\/[^/]{2}(?:\/|$)/.test(href)
+  const normalizedHref = hasCountryPrefix
+    ? href
+    : href.startsWith("/")
+      ? `/${countryCode}${href}`
+      : `/${countryCode}/${href}`
 
   return (
-    <Link href={`/${countryCode}${href}`} {...props}>
+    <Link href={normalizedHref} {...props}>
       {children}
     </Link>
   )

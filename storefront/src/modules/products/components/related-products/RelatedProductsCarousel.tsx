@@ -5,6 +5,7 @@ import Image from "next/image"
 import Link from "next/link"
 import { HttpTypes } from "@medusajs/types"
 import { convertToLocale } from "@lib/util/money"
+import { getProductSubtitle } from "@lib/util/product-subtitle"
 import { ProductCard } from "@modules/home/components/custom-home/Product-Grid"
 
 interface RelatedProductsCarouselProps {
@@ -163,6 +164,11 @@ export default function RelatedProductsCarousel({
                 <h3 className="text-xs text-[var(--text-secondary)] group-hover:text-[var(--text-primary)] font-medium line-clamp-2 leading-snug transition">
                   {product.title}
                 </h3>
+                {getProductSubtitle(product) && (
+                  <p className="mt-1 text-[11px] leading-snug text-[var(--text-muted)] line-clamp-2">
+                    {getProductSubtitle(product)}
+                  </p>
+                )}
                 <div className="mt-auto pt-2 flex items-baseline gap-1.5">
                   <span className="text-xs font-bold text-[var(--text-primary)]">
                     {convertToLocale({ amount: price, currency_code: region.currency_code })}

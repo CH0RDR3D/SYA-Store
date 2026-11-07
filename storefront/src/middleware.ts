@@ -27,6 +27,8 @@ async function getRegionMap() {
         headers: {
           "x-publishable-api-key": PUBLISHABLE_API_KEY,
         },
+        signal: AbortSignal.timeout(2500),
+        cache: "no-store",
       })
 
       if (!response.ok) {
@@ -108,8 +110,9 @@ export async function middleware(request: NextRequest) {
 
   const countryCode = regionMap && (await getCountryCode(request, regionMap))
 
+  const urlCountryCode = request.nextUrl.pathname.split("/").filter(Boolean)[0]
   const urlHasCountryCode = Boolean(
-    countryCode && request.nextUrl.pathname.split("/")[1].includes(countryCode)
+    countryCode && urlCountryCode?.toLowerCase() === countryCode.toLowerCase()
   )
 
   // Continue without region routing if the backend has no regions available.

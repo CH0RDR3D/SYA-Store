@@ -497,7 +497,7 @@ const Shipping: React.FC<ShippingProps> = ({
                 <div className="flex-1">
                   <div className="flex items-center justify-between">
                     <span className="text-base-semi font-semibold text-ui-fg-base">
-                      🚗 Yango Express Delivery
+                      Yango Express Delivery
                     </span>
                     <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-rose-100 text-rose-700">
                       Live Fare
@@ -640,7 +640,7 @@ const Shipping: React.FC<ShippingProps> = ({
                       {showBreakdown ? "Hide Fare Breakdown ▲" : "View Rate Breakdown ▼"}
                     </button>
                     <span className="text-ui-fg-muted text-[11px]">
-                      Base 30 ZMW (first 2 km) + 8 ZMW/km beyond (Min 35 ZMW)
+                      Base 35 ZMW (first 2 km) + 8 ZMW/km beyond (Min 35 ZMW)
                     </span>
                   </div>
 
@@ -787,7 +787,7 @@ const Shipping: React.FC<ShippingProps> = ({
                 <div className="space-y-1">
                   <div className="flex items-center gap-2">
                     <span className="font-semibold text-base text-ui-fg-base">
-                      🏬 {warehouse.name || "Lusaka Central Warehouse"}
+                      {warehouse.name || "Lusaka Central Warehouse"}
                     </span>
                     <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-emerald-600 text-white">
                       FREE PICKUP

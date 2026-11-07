@@ -4,6 +4,7 @@ import { getProductsById } from "@lib/data/products"
 import { HttpTypes } from "@medusajs/types"
 import Image from "next/image"
 import { convertToLocale } from "@lib/util/money"
+import { getProductSubtitle } from "@lib/util/product-subtitle"
 
 export default async function ProductPreview({
   product,
@@ -68,6 +69,11 @@ export default async function ProductPreview({
         <h3 className="text-xs md:text-sm text-[var(--text-secondary)] font-medium line-clamp-2 group-hover:text-[var(--text-primary)] transition leading-snug">
           {product.title}
         </h3>
+        {getProductSubtitle(displayProduct) && (
+          <p className="mt-1 text-[11px] leading-snug text-[var(--text-muted)] line-clamp-2">
+            {getProductSubtitle(displayProduct)}
+          </p>
+        )}
 
         <div className="mt-auto pt-3 flex items-baseline justify-between">
           <div className="flex flex-col">

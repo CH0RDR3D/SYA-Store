@@ -1,7 +1,7 @@
 import { Metadata } from "next"
 import CartTemplate from "@modules/cart/templates"
 
-import { enrichLineItems, retrieveCart } from "@lib/data/cart"
+import { applyMemberPromotion, enrichLineItems, retrieveCart } from "@lib/data/cart"
 import { HttpTypes } from "@medusajs/types"
 import { getCustomer } from "@lib/data/customer"
 
@@ -16,6 +16,13 @@ const fetchCart = async () => {
   if (!cart) {
     return null
   }
+
+  const promotedCart = await applyMemberPromotion(cart)
+  if (!promotedCart) {
+    return null
+  }
+
+  Object.assign(cart, promotedCart)
 
   if (cart?.items?.length) {
     const enrichedItems = await enrichLineItems(cart?.items, cart?.region_id!)

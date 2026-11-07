@@ -28,7 +28,7 @@ const DiscountCode: React.FC<DiscountCodeProps> = ({ cart }) => {
     )
 
     await applyPromotions(
-      validPromotions.filter((p) => p.code === undefined).map((p) => p.code!)
+      validPromotions.map((promotion) => promotion.code!).filter(Boolean)
     )
   }
 
@@ -39,8 +39,8 @@ const DiscountCode: React.FC<DiscountCodeProps> = ({ cart }) => {
     }
     const input = document.getElementById("promotion-input") as HTMLInputElement
     const codes = promotions
-      .filter((p) => p.code === undefined)
-      .map((p) => p.code!)
+      .map((promotion) => promotion.code)
+      .filter((promotionCode): promotionCode is string => Boolean(promotionCode))
     codes.push(code.toString())
 
     await applyPromotions(codes)
