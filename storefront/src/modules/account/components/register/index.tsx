@@ -123,6 +123,7 @@ const Register = ({ setCurrentView }: Props) => {
             name="phone"
             type="tel"
             autoComplete="tel"
+            required
             data-testid="phone-input"
           />
           <Input
@@ -145,7 +146,7 @@ const Register = ({ setCurrentView }: Props) => {
           </LocalizedClientLink>{" "}
           and{" "}
           <LocalizedClientLink
-            href="/content/terms-of-use"
+            href="/terms-of-service"
             className="underline"
           >
             Terms of Use
@@ -171,4 +172,3 @@ const Register = ({ setCurrentView }: Props) => {
 }
 
 export default Register
-

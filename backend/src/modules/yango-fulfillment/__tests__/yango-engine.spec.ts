@@ -45,7 +45,7 @@ describe("YangoEngine Fulfillment Provider", () => {
       const options = await service.getFulfillmentOptions()
       expect(options).toEqual(
         expect.arrayContaining([
-          expect.objectContaining({ id: "yango-express", name: "Yango Express Delivery" }),
+          expect.objectContaining({ id: "yango-express", name: "SYA Express Delivery" }),
           expect.objectContaining({ id: "store-pickup", name: "Store Pickup" }),
         ])
       )

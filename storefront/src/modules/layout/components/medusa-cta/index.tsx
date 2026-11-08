@@ -6,7 +6,7 @@ import NextJs from "../../../common/icons/nextjs"
 const MedusaCTA = () => {
   return (
     <a
-      href=""
+      href="https://chordred-production.up.railway.app/"
       target="_blank"
       rel="noopener noreferrer"
       className="group inline-flex items-center rounded-full px-3 py-1.5 text-ui-fg-muted transition-colors hover:bg-ui-bg-subtle-hover hover:text-ui-fg-base focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ui-border-interactive"

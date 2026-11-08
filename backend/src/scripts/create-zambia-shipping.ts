@@ -192,15 +192,15 @@ export default async function createZambiaFulfillment({ container }: ExecArgs) {
     });
   }
 
-  // Always create or recreate Yango Express Delivery calculated option
+  // Always create or recreate SYA Express Delivery calculated option
   newOptions.push({
-    name: "Yango Express Delivery",
+    name: "SYA Express Delivery",
     price_type: "calculated",
     provider_id: "yango-engine_yango-engine",
     service_zone_id: serviceZone.id,
     shipping_profile_id: shippingProfile.id,
     type: {
-      label: "Yango Express Delivery",
+      label: "SYA Express Delivery",
       description: "Dynamic distance-based delivery across Lusaka.",
       code: "delivery",
     },

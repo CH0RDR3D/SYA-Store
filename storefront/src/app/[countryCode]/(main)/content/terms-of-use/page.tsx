@@ -7,6 +7,8 @@ export const metadata: Metadata = {
     "Read the terms for shopping with SYA Store, operated by SYA General Dealers Ltd. in Zambia.",
 }
 
+const effectiveDate = "8 November 2026"
+
 const terms = [
   {
     title: "1. Legal entity and jurisdiction",
@@ -20,6 +22,8 @@ const terms = [
     paragraphs: [
       "Provide accurate, current information when creating an account, placing an order, and entering delivery details. Keep your account credentials secure and tell us if you believe your account has been used without permission.",
       "Fraud, misuse of the website or its services, and resale of products without SYA Store's consent are prohibited.",
+      "You must be at least 13 years old to create an account. If you are under 18, you may use the website only with the permission and supervision of a parent or legal guardian, who accepts responsibility for your use and any resulting purchases.",
+      "Phone numbers may be used for account identification, delivery coordination, order updates, and SMS communications permitted by these terms. Marketing messages are sent only where consent has been provided and may be withdrawn at any time.",
     ],
   },
   {
@@ -75,6 +79,9 @@ export default function TermsOfUsePage() {
           </h1>
           <p className="mt-3 max-w-2xl text-sm leading-relaxed text-[var(--text-secondary)]">
             Terms for using SYA Store and placing shopping orders in Zambia.
+          </p>
+          <p className="mt-4 text-xs text-[var(--text-muted)]">
+            Effective date: {effectiveDate}
           </p>
         </header>
 

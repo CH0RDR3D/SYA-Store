@@ -32,6 +32,17 @@ type ShippingProps = {
   availableShippingMethods: HttpTypes.StoreCartShippingOption[] | null
 }
 
+const isExpressShipping = (option: HttpTypes.StoreCartShippingOption) =>
+  /express/i.test(`${option.name} ${(option as any).type?.code || ""}`)
+
+const getShippingDisplayPrice = (option: HttpTypes.StoreCartShippingOption) =>
+  isExpressShipping(option)
+    ? Math.round((option.amount ?? 0) * 1.4)
+    : option.amount ?? 0
+
+const getShippingDeliveryTime = (option: HttpTypes.StoreCartShippingOption) =>
+  isExpressShipping(option) ? "1–2 hours" : "5–7 hours"
+
 const Shipping: React.FC<ShippingProps> = ({
   cart,
   availableShippingMethods,
@@ -39,6 +50,7 @@ const Shipping: React.FC<ShippingProps> = ({
   const [deliveryMethod, setDeliveryMethod] = useState<"delivery" | "pickup">("delivery")
   const [deliveryLocation, setDeliveryLocation] = useState<{ lat: number; lng: number } | null>(null)
   const [warehouse, setWarehouse] = useState<StoreLocation>(DEFAULT_WAREHOUSE_LOCATION)
+  const [storeLocations, setStoreLocations] = useState<StoreLocation[]>([DEFAULT_WAREHOUSE_LOCATION])
   const [estimate, setEstimate] = useState<DeliveryEstimateResult | null>(null)
   const [isCalculating, setIsCalculating] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
@@ -71,6 +83,7 @@ const Shipping: React.FC<ShippingProps> = ({
       if (res.default_location) {
         setWarehouse(res.default_location)
       }
+      setStoreLocations(res.locations?.length ? res.locations : [res.default_location || DEFAULT_WAREHOUSE_LOCATION])
     })
   }, [])
 
@@ -497,7 +510,7 @@ const Shipping: React.FC<ShippingProps> = ({
                 <div className="flex-1">
                   <div className="flex items-center justify-between">
                     <span className="text-base-semi font-semibold text-ui-fg-base">
-                      Yango Express Delivery
+                      Express Delivery
                     </span>
                     <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-rose-100 text-rose-700">
                       Live Fare
@@ -546,17 +559,18 @@ const Shipping: React.FC<ShippingProps> = ({
                 apiKey={mapsKey}
                 location={deliveryLocation}
                 warehouseLocation={memoizedWarehouseLocation}
+                fixedLocations={storeLocations}
                 onResolveLocation={onResolveLocation}
                 onLocationChange={onPinDrag}
                 onError={setMapError}
               />
 
-              {/* Yango Live Estimation Card */}
-              {estimate && (
+              {/* Internal delivery estimation details are intentionally hidden from checkout. */}
+              {false && estimate && estimate && (
                 <div
                   className={clx(
                     "rounded-2xl border p-5 transition-all",
-                    estimate.is_out_of_range
+                    estimate!.is_out_of_range
                       ? "border-amber-300 bg-amber-50/70"
                       : "border-indigo-100 bg-gradient-to-br from-indigo-50/40 via-white to-rose-50/30 shadow-sm"
                   )}
@@ -568,11 +582,11 @@ const Shipping: React.FC<ShippingProps> = ({
                       <div>
                         <div className="flex items-center gap-2">
                           <span className="font-semibold text-sm text-ui-fg-base">
-                            Yango Delivery Fare Engine
+                            Delivery Fare
                           </span>
                           <span className="inline-flex items-center gap-1 text-[10px] font-medium bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full">
                             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping" />
-                            {estimate.source === "google_matrix" ? "Distance Matrix API" : "Road Distance Fallback"}
+                            {estimate!.source === "google_matrix" ? "Distance Matrix API" : "Road Distance Fallback"}
                           </span>
                         </div>
                         <Text className="text-xs text-ui-fg-subtle">
@@ -594,7 +608,7 @@ const Shipping: React.FC<ShippingProps> = ({
                         Distance
                       </Text>
                       <Text className="text-lg font-bold text-ui-fg-base mt-0.5">
-                        {estimate.distance_km} <span className="text-xs font-normal">km</span>
+                        {estimate!.distance_km} <span className="text-xs font-normal">km</span>
                       </Text>
                     </div>
 
@@ -603,7 +617,7 @@ const Shipping: React.FC<ShippingProps> = ({
                         Est. Duration
                       </Text>
                       <Text className="text-lg font-bold text-ui-fg-base mt-0.5">
-                        {estimate.duration_text}
+                        {estimate!.duration_text}
                       </Text>
                     </div>
 
@@ -613,7 +627,7 @@ const Shipping: React.FC<ShippingProps> = ({
                       </Text>
                       <Text className="text-lg font-bold text-indigo-600 mt-0.5">
                         {convertToLocale({
-                          amount: estimate.yango_cost,
+                          amount: estimate!.yango_cost,
                           currency_code: currencyCode,
                         })}
                       </Text>
@@ -621,12 +635,12 @@ const Shipping: React.FC<ShippingProps> = ({
                   </div>
 
                   {/* Out of range notice */}
-                  {estimate.is_out_of_range && (
+                  {estimate!.is_out_of_range && (
                     <div className="mt-2 rounded-xl bg-amber-100 border border-amber-300 p-3 text-amber-900 text-xs">
                       <div className="font-semibold flex items-center gap-1.5 mb-1">
                         <span>⚠️</span> Delivery Out of Range
                       </div>
-                      <p>{estimate.out_of_range_message}</p>
+                      <p>{estimate!.out_of_range_message}</p>
                     </div>
                   )}
 
@@ -652,8 +666,8 @@ const Shipping: React.FC<ShippingProps> = ({
                         <span className="font-medium text-ui-fg-base">{YANGO_RATES.BASE_FARE} ZMW</span>
                       </div>
                       <div className="flex justify-between">
-                        <span>Additional Distance ({estimate.breakdown.extra_km} km @ {YANGO_RATES.PER_KM_RATE} ZMW/km):</span>
-                        <span className="font-medium text-ui-fg-base">+{estimate.breakdown.extra_cost} ZMW</span>
+                        <span>Additional Distance ({estimate!.breakdown.extra_km} km @ {YANGO_RATES.PER_KM_RATE} ZMW/km):</span>
+                        <span className="font-medium text-ui-fg-base">+{estimate!.breakdown.extra_cost} ZMW</span>
                       </div>
                       <div className="flex justify-between">
                         <span>Minimum Fare Threshold:</span>
@@ -661,7 +675,7 @@ const Shipping: React.FC<ShippingProps> = ({
                       </div>
                       <div className="flex justify-between pt-1.5 border-t font-semibold text-ui-fg-base">
                         <span>Total Delivery Fee:</span>
-                        <span className="text-indigo-600">{estimate.yango_cost} ZMW</span>
+                        <span className="text-indigo-600">{estimate!.yango_cost} ZMW</span>
                       </div>
                     </div>
                   )}
@@ -756,16 +770,14 @@ const Shipping: React.FC<ShippingProps> = ({
                             <span className="text-sm font-medium text-ui-fg-base">
                               {option.name}
                             </span>
-                            {estimate && (
-                              <span className="block text-xs text-ui-fg-muted">
-                                Dynamic rate: {estimate.distance_km} km (~{estimate.duration_text})
-                              </span>
-                            )}
+                            <span className="block text-xs text-ui-fg-muted">
+                              {getShippingDeliveryTime(option)} delivery
+                            </span>
                           </div>
                         </div>
                         <span className="font-semibold text-ui-fg-base text-sm">
                           {convertToLocale({
-                            amount: estimate ? estimate.yango_cost : (option.amount ?? 35),
+                            amount: getShippingDisplayPrice(option),
                             currency_code: currencyCode,
                           })}
                         </span>
@@ -801,7 +813,7 @@ const Shipping: React.FC<ShippingProps> = ({
               </div>
 
               <div className="text-xs text-ui-fg-subtle bg-white/60 p-3 rounded-xl border border-emerald-100/60">
-                <p className="font-medium text-ui-fg-base mb-0.5">📦 Collection Hours & Instructions:</p>
+                <p className="font-medium text-ui-fg-base mb-0.5">Collection Hours & Instructions:</p>
                 <p>Everyday: 08:30 – 17:30. Orders are typically prepared, delivered and/or ready for collection within 1–2 hours.</p>
               </div>
             </div>
@@ -855,7 +867,7 @@ const Shipping: React.FC<ShippingProps> = ({
                 Fulfillment Method
               </Text>
               <Text className="txt-medium text-ui-fg-subtle">
-                🚗 Yango Express Delivery
+                🚗 Express Delivery
                 {(cart.metadata as any)?.distance_km ? ` (${(cart.metadata as any).distance_km} km, ~${(cart.metadata as any).duration_text || "15 mins"})` : ""}
                 {" — "}
                 <span className="font-semibold text-ui-fg-base">

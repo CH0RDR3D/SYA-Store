@@ -28,6 +28,7 @@ type LocationMapProps = {
   apiKey?: string
   location: Location | null
   warehouseLocation?: WarehouseInfo
+  fixedLocations?: Array<WarehouseInfo>
   onResolveLocation: (
     location: Location,
     address: ResolvedAddress,
@@ -40,12 +41,50 @@ type LocationMapProps = {
 declare global {
   interface Window {
     google: any
+    L: any
     __googleMapsCheckoutScriptLoaded?: boolean
     gm_authFailure?: () => void
   }
 }
 
 const GOOGLE_MAPS_SCRIPT_ID = "checkout-google-maps-script"
+const LEAFLET_SCRIPT_ID = "checkout-leaflet-script"
+const LEAFLET_STYLE_ID = "checkout-leaflet-style"
+
+const loadLeaflet = (): Promise<any> => {
+  if (typeof window === "undefined") {
+    return Promise.reject(new Error("Leaflet can only be loaded in browser"))
+  }
+
+  if (!document.getElementById(LEAFLET_STYLE_ID)) {
+    const style = document.createElement("link")
+    style.id = LEAFLET_STYLE_ID
+    style.rel = "stylesheet"
+    style.href = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    document.head.appendChild(style)
+  }
+
+  if (window.L) {
+    return Promise.resolve(window.L)
+  }
+
+  return new Promise((resolve, reject) => {
+    const existing = document.getElementById(LEAFLET_SCRIPT_ID) as HTMLScriptElement | null
+    if (existing) {
+      existing.addEventListener("load", () => resolve(window.L), { once: true })
+      existing.addEventListener("error", () => reject(new Error("Failed to load map library")), { once: true })
+      return
+    }
+
+    const script = document.createElement("script")
+    script.id = LEAFLET_SCRIPT_ID
+    script.src = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    script.async = true
+    script.onload = () => resolve(window.L)
+    script.onerror = () => reject(new Error("Failed to load map library"))
+    document.head.appendChild(script)
+  })
+}
 
 const loadGoogleMaps = (apiKey: string): Promise<void> => {
   if (typeof window === "undefined") {
@@ -81,11 +120,15 @@ const LocationMap = ({
   apiKey,
   location,
   warehouseLocation,
+  fixedLocations = [],
   onResolveLocation,
   onLocationChange,
   onError,
 }: LocationMapProps) => {
   const mapElementRef = useRef<HTMLDivElement | null>(null)
+  const fallbackMapElementRef = useRef<HTMLDivElement | null>(null)
+  const fallbackMapRef = useRef<any>(null)
+  const fallbackDeliveryMarkerRef = useRef<any>(null)
   const mapRef = useRef<any>(null)
   const userMarkerRef = useRef<any>(null)
   const warehouseMarkerRef = useRef<any>(null)
@@ -270,6 +313,11 @@ const LocationMap = ({
 
       const wh = cachedWarehouseRef.current
 
+      if (!apiKey && fallbackMapRef.current && fallbackDeliveryMarkerRef.current) {
+        fallbackDeliveryMarkerRef.current.setLatLng([coords.lat, coords.lng])
+        fallbackMapRef.current.setView([coords.lat, coords.lng], 14)
+      }
+
       if (mapRef.current && userMarkerRef.current && window.google?.maps) {
         const latLng = new window.google.maps.LatLng(coords.lat, coords.lng)
         userMarkerRef.current.setPosition(latLng)
@@ -296,6 +344,87 @@ const LocationMap = ({
       setLoading(false)
     }
   }, [getDeviceLocation, reverseGeocode])
+
+  useEffect(() => {
+    if (apiKey || !fallbackMapElementRef.current) {
+      return
+    }
+
+    let disposed = false
+
+    loadLeaflet()
+      .then((L) => {
+        if (disposed || !fallbackMapElementRef.current || fallbackMapRef.current) {
+          return
+        }
+
+        const initialLocation = locationRef.current || cachedWarehouseRef.current
+        const map = L.map(fallbackMapElementRef.current, {
+          zoomControl: true,
+          attributionControl: true,
+        }).setView([initialLocation.lat, initialLocation.lng], 14)
+
+        L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+          maxZoom: 19,
+          attribution: "&copy; OpenStreetMap contributors",
+        }).addTo(map)
+
+        fallbackMapRef.current = map
+
+        const fixedIcon = L.divIcon({
+          className: "",
+          html: '<div style="width:18px;height:18px;border-radius:50%;background:#4f46e5;border:3px solid white;box-shadow:0 2px 6px rgba(0,0,0,.4)"></div>',
+          iconSize: [18, 18],
+          iconAnchor: [9, 9],
+        })
+        const deliveryIcon = L.divIcon({
+          className: "",
+          html: '<div style="width:24px;height:24px;border-radius:50% 50% 50% 0;background:#e11d48;border:3px solid white;transform:rotate(-45deg);box-shadow:0 3px 8px rgba(0,0,0,.45)"></div>',
+          iconSize: [24, 24],
+          iconAnchor: [12, 24],
+        })
+
+        const uniqueFixedLocations = fixedLocations.filter((fixed, index, all) =>
+          all.findIndex((candidate) =>
+            candidate.lat === fixed.lat && candidate.lng === fixed.lng
+          ) === index
+        )
+        uniqueFixedLocations.forEach((fixed, index) => {
+          const isWarehouse = fixed.lat === cachedWarehouseRef.current.lat &&
+            fixed.lng === cachedWarehouseRef.current.lng
+          const marker = L.marker([fixed.lat, fixed.lng], {
+            icon: fixedIcon,
+            keyboard: false,
+          }).addTo(map)
+          marker.bindPopup(isWarehouse ? "Warehouse" : fixed.name || `Office ${index + 1}`)
+        })
+
+        const deliveryMarker = L.marker(
+          [initialLocation.lat, initialLocation.lng],
+          { icon: deliveryIcon, draggable: true }
+        ).addTo(map)
+        fallbackDeliveryMarkerRef.current = deliveryMarker
+
+        deliveryMarker.on("dragend", () => {
+          const point = deliveryMarker.getLatLng()
+          reverseGeocode({ lat: point.lat, lng: point.lng }, null, true)
+        })
+
+        map.invalidateSize()
+      })
+      .catch((error: Error) => {
+        if (!disposed) {
+          setError(error.message)
+        }
+      })
+
+    return () => {
+      disposed = true
+      fallbackMapRef.current?.remove()
+      fallbackMapRef.current = null
+      fallbackDeliveryMarkerRef.current = null
+    }
+  }, [apiKey, fixedLocations, reverseGeocode])
 
   // Initialize Google Map - runs strictly once per apiKey/container lifecycle
   useEffect(() => {
@@ -542,13 +671,11 @@ const LocationMap = ({
           data-testid="checkout-map"
         />
       ) : (
-        <div className="rounded-xl border border-dashed border-ui-border-base bg-ui-bg-subtle p-6 text-center">
-          <div className="text-2xl mb-2">🗺️</div>
-          <Text className="txt-medium-plus text-ui-fg-base">Interactive Map Active</Text>
-          <Text className="txt-small text-ui-fg-subtle mt-1">
-            Distance and dynamic Yango delivery fees are computed live from our {cachedWarehouse.name || "Lusaka Central Warehouse"}.
-          </Text>
-        </div>
+        <div
+          ref={fallbackMapElementRef}
+          className="h-[280px] w-full overflow-hidden rounded-xl border border-[var(--surface-border)] bg-[var(--bg-surface)] shadow-inner small:h-[340px]"
+          data-testid="checkout-map-fallback"
+        />
       )}
 
       {/* Map Legend */}

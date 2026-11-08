@@ -181,7 +181,7 @@ export class YangoEngineService extends AbstractFulfillmentProviderService {
     return [
       {
         id: "yango-express",
-        name: "Yango Express Delivery",
+        name: "SYA Express Delivery",
       },
       {
         id: "store-pickup",
@@ -190,7 +190,7 @@ export class YangoEngineService extends AbstractFulfillmentProviderService {
       {
         id: "yango-express-return",
         is_return: true,
-        name: "Yango Return Delivery",
+        name: "SYA Return Delivery",
       },
     ]
   }

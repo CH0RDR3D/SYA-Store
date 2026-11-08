@@ -109,11 +109,17 @@ export async function signup(
   formData: FormData
 ): Promise<CustomerAuthState> {
   const password = formData.get("password") as string
+  const phone = (formData.get("phone") as string | null)?.trim()
+
+  if (!phone) {
+    return { state: "error", error: "Phone number is required" }
+  }
+
   const customerForm = {
     email: formData.get("email") as string,
     first_name: formData.get("first_name") as string,
     last_name: formData.get("last_name") as string,
-    phone: formData.get("phone") as string,
+    phone,
   }
 
   try {
@@ -412,4 +418,3 @@ export async function loginWithMedusaToken(token: string): Promise<void> {
     console.error("Failed to transfer cart in loginWithMedusaToken:", error)
   }
 }
-
