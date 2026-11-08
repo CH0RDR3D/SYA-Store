@@ -35,10 +35,17 @@ type ShippingProps = {
 const isExpressShipping = (option: HttpTypes.StoreCartShippingOption) =>
   /express/i.test(`${option.name} ${(option as any).type?.code || ""}`)
 
-const getShippingDisplayPrice = (option: HttpTypes.StoreCartShippingOption) =>
-  isExpressShipping(option)
-    ? Math.round((option.amount ?? 0) * 1.4)
-    : option.amount ?? 0
+const getShippingDisplayPrice = (
+  option: HttpTypes.StoreCartShippingOption,
+  liveFare?: number
+) => {
+  const fallbackFare = option.amount ?? 35
+  const baseFare = liveFare ?? fallbackFare
+
+  return isExpressShipping(option)
+    ? Math.round(baseFare * 1.4)
+    : Math.round(baseFare)
+}
 
 const getShippingDeliveryTime = (option: HttpTypes.StoreCartShippingOption) =>
   isExpressShipping(option) ? "1–2 hours" : "5–7 hours"
@@ -777,7 +784,10 @@ const Shipping: React.FC<ShippingProps> = ({
                         </div>
                         <span className="font-semibold text-ui-fg-base text-sm">
                           {convertToLocale({
-                            amount: getShippingDisplayPrice(option),
+                            amount: getShippingDisplayPrice(
+                              option,
+                              estimate?.yango_cost
+                            ),
                             currency_code: currencyCode,
                           })}
                         </span>
