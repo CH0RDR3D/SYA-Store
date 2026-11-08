@@ -19,6 +19,7 @@ type DiscountCodeProps = {
 
 const DiscountCode: React.FC<DiscountCodeProps> = ({ cart }) => {
   const [isOpen, setIsOpen] = React.useState(false)
+  const [promotionError, setPromotionError] = React.useState<string | null>(null)
 
   const { items = [], promotions = [] } = cart
   const removePromotionCode = async (code: string) => {
@@ -32,6 +33,7 @@ const DiscountCode: React.FC<DiscountCodeProps> = ({ cart }) => {
   }
 
   const addPromotionCode = async (formData: FormData) => {
+    setPromotionError(null)
     const code = formData.get("code")
     if (!code) {
       return
@@ -49,7 +51,9 @@ const DiscountCode: React.FC<DiscountCodeProps> = ({ cart }) => {
       }
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error)
-      throw error
+      setPromotionError(
+        errorMessage.replace(/^Error setting up the request: /i, "")
+      )
     }
   }
 
@@ -92,7 +96,7 @@ const DiscountCode: React.FC<DiscountCodeProps> = ({ cart }) => {
               </div>
 
               <ErrorMessage
-                error={null}
+                error={promotionError}
                 data-testid="discount-error-message"
               />
             </>
