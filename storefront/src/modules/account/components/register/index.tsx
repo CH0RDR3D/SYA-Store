@@ -5,6 +5,7 @@ import { Mail, CheckCircle2, RefreshCw } from "lucide-react"
 
 import Input from "@modules/common/components/input"
 import { LOGIN_VIEW } from "@modules/account/templates/login-template"
+import GoogleAutoSignIn from "../google-auto-signin"
 import ErrorMessage from "@modules/checkout/components/error-message"
 import { SubmitButton } from "@modules/checkout/components/submit-button"
 import LocalizedClientLink from "@modules/common/components/localized-client-link"
@@ -94,6 +95,15 @@ const Register = ({ setCurrentView }: Props) => {
         Create your SYA Store Member profile, and get access to an enhanced
         shopping experience.
       </p>
+      <div className="w-full mb-4">
+        <GoogleAutoSignIn />
+      </div>
+      <div className="relative w-full my-4 flex items-center justify-center">
+        <div className="border-t border-ui-border-base w-full" />
+        <span className="bg-ui-bg-base px-3 text-xs uppercase tracking-wider text-ui-fg-muted shrink-0">
+          Or register with email
+        </span>
+      </div>
       <form className="w-full flex flex-col" action={formAction}>
         <div className="flex flex-col w-full gap-y-2">
           <Input

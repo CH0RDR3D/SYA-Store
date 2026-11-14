@@ -5,6 +5,7 @@ import AuthProvider from "@modules/common/components/auth-provider"
 import ThemeProvider from "@modules/layout/components/theme-provider"
 import AnalyticsProvider from "@modules/common/components/analytics-provider"
 import CookieConsentBanner from "@modules/common/components/cookie-consent"
+import GoogleOneTap from "@modules/account/components/google-one-tap"
 
 const BASE_URL = getBaseURL()
 const GTM_ID = "GTM-P9N3JSM4"
@@ -95,6 +96,8 @@ gtag('consent','default',{analytics_storage:'denied',ad_storage:'denied',ad_user
         <script async src={`https://www.googletagmanager.com/gtm.js?id=${GTM_ID}`} />
         {/* Theme init — must run before first paint to avoid flash */}
         <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
+        {/* Google Identity Services (One Tap) */}
+        <script async defer src="https://accounts.google.com/gsi/client" />
       </head>
       <body className="min-h-screen bg-[var(--app-bg)] text-[var(--app-fg)] transition-colors duration-300">
         <noscript>
@@ -110,6 +113,7 @@ gtag('consent','default',{analytics_storage:'denied',ad_storage:'denied',ad_user
           <ThemeProvider>
             <AnalyticsProvider>
               <main className="relative">{props.children}</main>
+              <GoogleOneTap />
               <CookieConsentBanner />
             </AnalyticsProvider>
           </ThemeProvider>
