@@ -10,6 +10,9 @@ import { HttpTypes } from "@medusajs/types"
 import Trash from "@modules/common/icons/trash"
 import ErrorMessage from "../error-message"
 import { SubmitButton } from "../submit-button"
+import Modal from "@modules/common/components/modal"
+import { Button } from "@medusajs/ui"
+import LocalizedClientLink from "@modules/common/components/localized-client-link"
 
 type DiscountCodeProps = {
   cart: HttpTypes.StoreCart & {
@@ -20,6 +23,7 @@ type DiscountCodeProps = {
 const DiscountCode: React.FC<DiscountCodeProps> = ({ cart }) => {
   const [isOpen, setIsOpen] = React.useState(false)
   const [promotionError, setPromotionError] = React.useState<string | null>(null)
+  const [showSignInPrompt, setShowSignInPrompt] = React.useState(false)
 
   const { items = [], promotions = [] } = cart
   const removePromotionCode = async (code: string) => {
@@ -51,6 +55,10 @@ const DiscountCode: React.FC<DiscountCodeProps> = ({ cart }) => {
       }
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error)
+      if (errorMessage.includes("Sign in or create an account")) {
+        setShowSignInPrompt(true)
+        return
+      }
       setPromotionError(
         errorMessage.replace(/^Error setting up the request: /i, "")
       )
@@ -102,6 +110,26 @@ const DiscountCode: React.FC<DiscountCodeProps> = ({ cart }) => {
             </>
           )}
         </form>
+
+        <Modal
+          isOpen={showSignInPrompt}
+          close={() => setShowSignInPrompt(false)}
+          size="small"
+          data-testid="promotion-sign-in-modal"
+        >
+          <Modal.Title>Join SYA Store for member promos</Modal.Title>
+          <Modal.Description>
+            Create a free account or sign in to apply promotion codes and unlock member-only benefits.
+          </Modal.Description>
+          <Modal.Footer>
+            <LocalizedClientLink href="/account">
+              <Button variant="secondary">Sign in</Button>
+            </LocalizedClientLink>
+            <LocalizedClientLink href="/account">
+              <Button>Create free account</Button>
+            </LocalizedClientLink>
+          </Modal.Footer>
+        </Modal>
 
         {promotions.length > 0 && (
           <div className="w-full flex items-center">
