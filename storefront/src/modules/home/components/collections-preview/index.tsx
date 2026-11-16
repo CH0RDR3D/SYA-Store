@@ -30,22 +30,26 @@ const MANUAL_PAUSE_MS = 10000 // 10s pause after user manually picks a tab
 const MAX_VISIBLE_SLOTS = 6
 
 const COLLECTIONS_CSS = `
-@keyframes cp-pulse-slow {
-  0%, 100% { opacity: 0.12; transform: scale3d(1, 1, 1); }
-  50%      { opacity: 0.22; transform: scale3d(1.08, 1.08, 1); }
-}
 @keyframes cp-shine {
   from { transform: translateX(-120%) skewX(-20deg); }
   to   { transform: translateX(250%) skewX(-20deg); }
 }
 @keyframes cp-fade-in {
-  from { opacity: 0; transform: translate3d(0, 10px, 0); }
+  from { opacity: 0; transform: translate3d(0, 8px, 0); }
   to   { opacity: 1; transform: translate3d(0, 0, 0); }
 }
-.cp-pulse-1 { animation: cp-pulse-slow 8s ease-in-out infinite; will-change: transform, opacity; }
-.cp-pulse-2 { animation: cp-pulse-slow 10s ease-in-out infinite 2s; will-change: transform, opacity; }
+@keyframes cp-progress {
+  from { transform: scaleX(0); }
+  to   { transform: scaleX(1); }
+}
+.cp-pulse-1 { opacity: 0.12; }
+.cp-pulse-2 { opacity: 0.14; }
+.cp-progress-bar {
+  animation: cp-progress 6.5s linear forwards;
+  transform-origin: left;
+}
 .cp-card:hover .cp-shine { animation: cp-shine 0.85s ease; }
-.cp-fade-in { animation: cp-fade-in 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+.cp-fade-in { animation: cp-fade-in 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
 .cp-touch-scroll {
   -webkit-overflow-scrolling: touch;
   scroll-snap-type: x mandatory;
@@ -55,7 +59,7 @@ const COLLECTIONS_CSS = `
   scroll-snap-align: start;
 }
 @media (prefers-reduced-motion: reduce) {
-  .cp-pulse-1, .cp-pulse-2, .cp-fade-in { animation: none; }
+  .cp-fade-in, .cp-progress-bar { animation: none; }
   .cp-card:hover .cp-shine { animation: none; }
 }
 `
@@ -78,14 +82,11 @@ function DynamicProductCardSlot({
   region,
   countryCode,
 }: DynamicProductCardSlotProps) {
-  const [activeProductIdx, setActiveProductIdx] = useState(0)
-  const [activeImageIdx, setActiveImageIdx] = useState(0)
   const [isSlotHovered, setIsSlotHovered] = useState(false)
 
-  const numProducts = productsPool.length
-  const currentProduct = productsPool[activeProductIdx % Math.max(1, numProducts)] || productsPool[0]
+  const currentProduct = productsPool[0]
 
-  // Extract all available preview images for the current active product
+  // Extract preview images for hover effect
   const productImages = useMemo(() => {
     if (!currentProduct) return []
     const imgs: string[] = []
@@ -97,27 +98,6 @@ function DynamicProductCardSlot({
     }
     return imgs
   }, [currentProduct])
-
-  // Staggered auto-swap timer per card slot
-  useEffect(() => {
-    if (numProducts <= 1 && productImages.length <= 1) return
-    if (isSlotHovered) return
-
-    // Offset interval per slot (e.g. 3.4s, 4.2s, 3.8s, 4.5s)
-    const staggerOffset = (slotIndex * 750) % 2200
-    const intervalTime = 3400 + staggerOffset
-
-    const timer = setInterval(() => {
-      if (numProducts > 1) {
-        setActiveProductIdx((prev) => (prev + 1) % numProducts)
-        setActiveImageIdx(0)
-      } else if (productImages.length > 1) {
-        setActiveImageIdx((prev) => (prev + 1) % productImages.length)
-      }
-    }, intervalTime)
-
-    return () => clearInterval(timer)
-  }, [numProducts, productImages.length, isSlotHovered, slotIndex])
 
   if (!currentProduct) return null
 
@@ -144,8 +124,10 @@ function DynamicProductCardSlot({
       ? Math.round(((origAmount - calcAmount) / origAmount) * 100)
       : null
 
+  // Show secondary image on hover if available, otherwise thumbnail
   const currentThumbnail =
-    productImages[activeImageIdx % Math.max(1, productImages.length)] ||
+    (isSlotHovered && productImages[1]) ||
+    productImages[0] ||
     currentProduct.thumbnail ||
     currentProduct.images?.[0]?.url
 
@@ -390,8 +372,8 @@ export default function CollectionsPreview({
   const [activeIdx, setActiveIdx] = useState(0)
   const [isPausedByUser, setIsPausedByUser] = useState(false)
   const [isHovered, setIsHovered] = useState(false)
+  const [isVisible, setIsVisible] = useState(true)
   const [manualPauseUntil, setManualPauseUntil] = useState(0)
-  const [progress, setProgress] = useState(0)
   const containerRef = useRef<HTMLElement>(null)
   const tabListRef = useRef<HTMLDivElement>(null)
 
@@ -418,7 +400,6 @@ export default function CollectionsPreview({
   // Manual tab selection
   const handleSelectCollection = useCallback((idx: number) => {
     setActiveIdx(idx)
-    setProgress(0)
     setManualPauseUntil(Date.now() + MANUAL_PAUSE_MS)
   }, [])
 
@@ -439,36 +420,39 @@ export default function CollectionsPreview({
     }
   }
 
-  // Auto-slide tick engine
+  // Viewport intersection observer to avoid running timers when scrolled away
   useEffect(() => {
-    if (numCollections <= 1) return
+    const el = containerRef.current
+    if (!el) return
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setIsVisible(entry.isIntersecting)
+      },
+      { threshold: 0.1 }
+    )
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [])
+
+  // Lightweight auto-slide timeout without 50ms JS re-renders
+  useEffect(() => {
+    if (numCollections <= 1 || isPausedByUser || isHovered || !isVisible) return
 
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
       setIsPausedByUser(true)
       return
     }
 
-    const intervalStep = 50
-    const totalTicks = AUTOSLIDE_INTERVAL_MS / intervalStep
+    const now = Date.now()
+    const remainingPause = Math.max(0, manualPauseUntil - now)
+    const delay = AUTOSLIDE_INTERVAL_MS + remainingPause
 
-    const timer = setInterval(() => {
-      const now = Date.now()
-      const isInteracting = isHovered || isPausedByUser || now < manualPauseUntil
+    const timer = setTimeout(() => {
+      setActiveIdx((current) => (current + 1) % numCollections)
+    }, delay)
 
-      if (!isInteracting) {
-        setProgress((prev) => {
-          const next = prev + 1 / totalTicks
-          if (next >= 1) {
-            setActiveIdx((current) => (current + 1) % numCollections)
-            return 0
-          }
-          return next
-        })
-      }
-    }, intervalStep)
-
-    return () => clearInterval(timer)
-  }, [numCollections, isHovered, isPausedByUser, manualPauseUntil])
+    return () => clearTimeout(timer)
+  }, [numCollections, activeIdx, isHovered, isPausedByUser, isVisible, manualPauseUntil])
 
   if (!activeCollection || displayCollections.length === 0) {
     return null
@@ -545,12 +529,12 @@ export default function CollectionsPreview({
                     : "bg-[var(--bg-surface)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-black/5 dark:hover:bg-white/5 border border-black/10 dark:border-white/10"
                     }`}
                 >
-                  {/* Active progress bar indicator */}
-                  {isActive && !isPausedByUser && !isHovered && (
+                  {/* Active progress bar indicator - pure GPU compositor animation */}
+                  {isActive && !isPausedByUser && !isHovered && isVisible && (
                     <span
+                      key={activeIdx}
                       aria-hidden="true"
-                      className="absolute bottom-0 left-0 h-[3px] bg-black/40 transition-all duration-75 origin-left"
-                      style={{ width: `${Math.min(100, Math.max(0, progress * 100))}%` }}
+                      className="cp-progress-bar absolute bottom-0 left-0 h-[3px] w-full bg-black/40 origin-left"
                     />
                   )}
 

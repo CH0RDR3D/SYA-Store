@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState } from "react"
+import React, { useState, useMemo } from "react"
 import Hero from "../hero"
 import ProductGrid from "./Product-Grid"
 import EditorsPickCarousel from "../editor-picks"
@@ -43,36 +43,42 @@ export default function CustomHomeLayout({
     router.push(`/${countryCode}/store${qs ? `?${qs}` : ""}`)
   }
 
-  // Separate deals (discounted) from standard products
-  const dealsProducts = products.filter((p) => {
-    const calc = p.variants?.[0]?.calculated_price?.calculated_amount ?? 0
-    const orig = p.variants?.[0]?.calculated_price?.original_amount ?? 0
-    return orig > calc
-  })
+  // Separate deals (discounted) from standard products — memoized for smooth searching
+  const dealsProducts = useMemo(() => {
+    return products.filter((p) => {
+      const calc = p.variants?.[0]?.calculated_price?.calculated_amount ?? 0
+      const orig = p.variants?.[0]?.calculated_price?.original_amount ?? 0
+      return orig > calc
+    })
+  }, [products])
 
   // Recent products / New Arrivals sorted by newest created_at timestamp
-  const recentProducts = [...products].sort((a, b) => {
-    const timeA = a.created_at ? new Date(a.created_at).getTime() : 0
-    const timeB = b.created_at ? new Date(b.created_at).getTime() : 0
-    return timeB - timeA
-  })
+  const recentProducts = useMemo(() => {
+    return [...products].sort((a, b) => {
+      const timeA = a.created_at ? new Date(a.created_at).getTime() : 0
+      const timeB = b.created_at ? new Date(b.created_at).getTime() : 0
+      return timeB - timeA
+    })
+  }, [products])
 
   // Health & Beauty specific showcase if available
-  const cleanStr = (s?: string) => s?.toLowerCase().replace(/[^a-z0-9]/g, "") || ""
-  const healthBeautyProducts = products.filter((p) =>
-    p.categories?.some((c) => {
-      const cleanH = cleanStr(c.handle)
-      const cleanN = cleanStr(c.name)
-      return (
-        cleanH.includes("health") ||
-        cleanH.includes("beauty") ||
-        cleanN.includes("health") ||
-        cleanN.includes("beauty") ||
-        cleanH.includes("wellness") ||
-        cleanN.includes("wellness")
-      )
-    })
-  )
+  const healthBeautyProducts = useMemo(() => {
+    const cleanStr = (s?: string) => s?.toLowerCase().replace(/[^a-z0-9]/g, "") || ""
+    return products.filter((p) =>
+      p.categories?.some((c) => {
+        const cleanH = cleanStr(c.handle)
+        const cleanN = cleanStr(c.name)
+        return (
+          cleanH.includes("health") ||
+          cleanH.includes("beauty") ||
+          cleanN.includes("health") ||
+          cleanN.includes("beauty") ||
+          cleanH.includes("wellness") ||
+          cleanN.includes("wellness")
+        )
+      })
+    )
+  }, [products])
 
   return (
     <div className="min-h-screen pb-20" style={{ background: "var(--bg-base)" }}>

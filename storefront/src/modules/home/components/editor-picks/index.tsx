@@ -53,18 +53,6 @@ export default function EditorsPickCarousel({
     el.scrollBy({ left: dir === "left" ? -scrollAmount : scrollAmount, behavior: "smooth" })
   }
 
-  // Touch handlers for mobile swipe navigation
-  const touchStartX = useRef(0)
-  const onTouchStart = (e: React.TouchEvent) => {
-    touchStartX.current = e.touches[0].clientX
-  }
-  const onTouchEnd = (e: React.TouchEvent) => {
-    const diff = touchStartX.current - e.changedTouches[0].clientX
-    if (Math.abs(diff) > 40) {
-      scroll(diff > 0 ? "right" : "left")
-    }
-  }
-
   if (!products || !products.length) return null
 
   return (
@@ -109,16 +97,14 @@ export default function EditorsPickCarousel({
           </button>
         )}
 
-        {/* Scrollable track */}
+        {/* Scrollable track - native touch momentum with hardware acceleration */}
         <div
           ref={trackRef}
-          className="flex gap-4 overflow-x-auto scroll-smooth no-scrollbar"
-          onTouchStart={onTouchStart}
-          onTouchEnd={onTouchEnd}
-          style={{ scrollbarWidth: "none" }}
+          className="flex gap-4 overflow-x-auto scroll-smooth no-scrollbar snap-x snap-mandatory"
+          style={{ scrollbarWidth: "none", WebkitOverflowScrolling: "touch" }}
         >
           {products.map((product) => (
-            <div key={product.id} className="w-[180px] md:w-[240px] flex-shrink-0">
+            <div key={product.id} className="w-[180px] md:w-[240px] flex-shrink-0 snap-start">
               <ProductCard product={product} region={region} showShopNow={false} />
             </div>
           ))}

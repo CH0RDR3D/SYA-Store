@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useEffect, useCallback } from "react"
+import React, { useState, useEffect, useCallback, useRef } from "react"
 import Image from "next/image"
 import Link from "next/link"
 import hero1 from "../../../../assets/images/hero/hero1.webp"
@@ -60,6 +60,8 @@ const slides = [
 export default function HeroBanner() {
   const [current, setCurrent] = useState(0)
   const [isPaused, setIsPaused] = useState(false)
+  const [isVisible, setIsVisible] = useState(true)
+  const sectionRef = useRef<HTMLElement>(null)
 
   const next = useCallback(() => {
     setCurrent((prev) => (prev + 1) % slides.length)
@@ -69,15 +71,30 @@ export default function HeroBanner() {
     setCurrent((prev) => (prev - 1 + slides.length) % slides.length)
   }, [])
 
+  // Pause interval when out of viewport to save mobile CPU/battery
   useEffect(() => {
-    if (isPaused) return
+    const el = sectionRef.current
+    if (!el) return
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setIsVisible(entry.isIntersecting)
+      },
+      { threshold: 0.1 }
+    )
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [])
+
+  useEffect(() => {
+    if (isPaused || !isVisible) return
     const interval = setInterval(next, 6500)
     return () => clearInterval(interval)
-  }, [isPaused, next])
+  }, [isPaused, isVisible, next])
 
   return (
     <section
-      className="relative w-full h-[600px] md:h-[720px] overflow-hidden"
+      ref={sectionRef}
+      className="relative w-full h-[600px] md:h-[720px] overflow-hidden select-none"
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
       onTouchStart={() => setIsPaused(true)}
@@ -85,22 +102,34 @@ export default function HeroBanner() {
     >
       {slides.map((slide, index) => {
         const isActive = index === current
+        // Only render active or adjacent slides to prevent GPU memory bloat on low-end devices
+        const isNear =
+          isActive ||
+          index === (current + 1) % slides.length ||
+          index === (current - 1 + slides.length) % slides.length
+
+        if (!isNear) {
+          return null
+        }
 
         return (
           <div
             key={slide.id}
-            className={`absolute inset-0 transition-[opacity,transform] duration-[1400ms] ease-[cubic-bezier(0.22,1,0.36,1)] ${
-              isActive ? "opacity-100 scale-100" : "opacity-0 scale-110"
+            aria-hidden={!isActive}
+            className={`absolute inset-0 transition-opacity duration-700 ease-out ${
+              isActive ? "opacity-100 z-10" : "opacity-0 z-0 pointer-events-none"
             }`}
           >
             <Image
               src={slide.image}
               alt={slide.title}
               fill
-              className={`object-cover transition-transform duration-[1400ms] ease-[cubic-bezier(0.22,1,0.36,1)] ${
-                isActive ? "scale-100" : "scale-110"
+              sizes="100vw"
+              className={`object-cover transition-transform duration-1000 ease-out ${
+                isActive ? "scale-100" : "scale-[1.02]"
               }`}
               priority={index === 0}
+              loading={index === 0 ? "eager" : "lazy"}
             />
 
             <div className="absolute inset-0 bg-gradient-to-r from-white/90 via-white/70 to-transparent dark:from-black/80 dark:via-black/50 dark:to-transparent" />
@@ -121,12 +150,14 @@ export default function HeroBanner() {
               <div className="mt-6 sm:mt-8 flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4">
                 <Link
                   href={slide.link}
-                  className="px-6 sm:px-8 py-3 bg-amber-400 hover:bg-amber-300 text-black font-bold text-xs sm:text-sm uppercase tracking-wider rounded-lg shadow-xl transition-all duration-200 hover:shadow-amber-400/40 hover:scale-[1.02]"
+                  tabIndex={isActive ? 0 : -1}
+                  className="px-6 sm:px-8 py-3 bg-amber-400 hover:bg-amber-300 text-black font-bold text-xs sm:text-sm uppercase tracking-wider rounded-lg shadow-xl transition-transform duration-200 hover:scale-[1.02]"
                 >
                   {slide.cta}
                 </Link>
                 <Link
                   href="/store"
+                  tabIndex={isActive ? 0 : -1}
                   className="px-5 sm:px-6 py-3 border border-[var(--nav-border)] text-[var(--text-primary)] text-xs sm:text-sm font-semibold rounded-lg hover:bg-black/5 dark:hover:bg-white/10 transition backdrop-blur-sm"
                 >
                   View All

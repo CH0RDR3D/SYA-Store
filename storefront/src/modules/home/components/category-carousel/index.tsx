@@ -168,24 +168,8 @@ function DynamicCategoryCard({
   countryCode,
 }: DynamicCategoryCardProps) {
   const isClone = copyIndex !== 1
-  const [activeIdx, setActiveIdx] = useState(0)
-  const [isCardHovered, setIsCardHovered] = useState(false)
-
   const hasPreviews = matchingPreviews.length > 0
-  const activePreview = hasPreviews ? matchingPreviews[activeIdx % matchingPreviews.length] : null
-
-  useEffect(() => {
-    if (matchingPreviews.length <= 1 || isCardHovered) return
-
-    const staggerOffset = (cardIndex * 650) % 1800
-    const intervalTime = 6200 + staggerOffset
-
-    const timer = setInterval(() => {
-      setActiveIdx((prev) => (prev + 1) % matchingPreviews.length)
-    }, intervalTime)
-
-    return () => clearInterval(timer)
-  }, [matchingPreviews.length, isCardHovered, cardIndex])
+  const preview = hasPreviews ? matchingPreviews[0] : null
 
   const targetHref = countryCode
     ? `/${countryCode}/categories/${cat.handle}`
@@ -197,35 +181,21 @@ function DynamicCategoryCard({
       aria-hidden={isClone || undefined}
       tabIndex={isClone ? -1 : undefined}
       draggable={false}
-      onMouseEnter={() => setIsCardHovered(true)}
-      onMouseLeave={() => setIsCardHovered(false)}
-      style={{ animationDelay: `${Math.min(cardIndex, 8) * 60}ms` }}
+      style={{ animationDelay: `${Math.min(cardIndex, 8) * 40}ms` }}
       className="cc-card cc-rise group relative flex flex-col w-[170px] sm:w-[210px] md:w-[230px] flex-shrink-0 rounded-2xl overflow-hidden border border-black/10 dark:border-white/10 hover:border-amber-400/60 transition-all duration-300 shadow-sm hover:shadow-[0_12px_28px_-8px_rgba(251,191,36,0.45)] bg-[var(--bg-surface)] hover:-translate-y-1 hover:scale-[1.02] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 select-none"
     >
-      {/* Category Image Zone with Multi-Image Crossfade */}
+      {/* Category Image Zone */}
       <div className="relative w-full aspect-[4/3] overflow-hidden bg-[var(--bg-card)] flex items-center justify-center p-2.5">
-        {hasPreviews ? (
+        {preview?.thumbnail ? (
           <div className="relative w-full h-full">
-            {matchingPreviews.slice(0, 6).map((preview, pIdx) => {
-              const isActive = pIdx === activeIdx % matchingPreviews.length
-              return (
-                <div
-                  key={preview.id || pIdx}
-                  className={`absolute inset-0 transition-all duration-700 ease-in-out flex items-center justify-center ${isActive
-                    ? "opacity-100 scale-100 z-10"
-                    : "opacity-0 scale-95 pointer-events-none z-0"
-                    }`}
-                >
-                  <Image
-                    src={preview.thumbnail}
-                    alt={isClone ? "" : preview.title || cat.name}
-                    fill
-                    sizes="(max-width: 640px) 170px, (max-width: 768px) 210px, 230px"
-                    className="object-contain p-2 group-hover:scale-110 group-hover:-rotate-1 transition-transform duration-500 ease-out"
-                  />
-                </div>
-              )
-            })}
+            <Image
+              src={preview.thumbnail}
+              alt={isClone ? "" : preview.title || cat.name}
+              fill
+              sizes="(max-width: 640px) 170px, (max-width: 768px) 210px, 230px"
+              className="object-contain p-2 group-hover:scale-105 transition-transform duration-300 ease-out"
+              loading="lazy"
+            />
           </div>
         ) : (
           <div className="w-full h-full flex flex-col items-center justify-center gap-1.5 rounded-xl bg-gradient-to-br from-amber-400/5 via-amber-400/10 to-transparent p-3">
@@ -244,25 +214,6 @@ function DynamicCategoryCard({
           className="cc-shine pointer-events-none absolute inset-y-0 left-0 w-1/3 bg-gradient-to-r from-transparent via-white/30 to-transparent -translate-x-[130%]"
         />
 
-        {/* Multi-product cycling dot indicators */}
-        {matchingPreviews.length > 1 && (
-          <div
-            className="absolute top-2 left-2 z-20 flex items-center gap-1 bg-black/55 dark:bg-black/80 backdrop-blur-xs px-2 py-0.5 rounded-full border border-white/10"
-            aria-hidden="true"
-          >
-            {matchingPreviews.slice(0, 4).map((_, dotIdx) => {
-              const isDotActive = dotIdx === activeIdx % Math.min(matchingPreviews.length, 4)
-              return (
-                <span
-                  key={dotIdx}
-                  className={`h-1.5 rounded-full transition-all duration-300 ${isDotActive ? "w-3 bg-amber-400 shadow-[0_0_6px_rgba(251,191,36,0.8)]" : "w-1.5 bg-white/40"
-                    }`}
-                />
-              )
-            })}
-          </div>
-        )}
-
         {/* Total Item count badge */}
         {totalCount > 0 && (
           <span className="cc-badge absolute top-2 right-2 z-20 px-2 py-0.5 rounded-full text-[9px] sm:text-[10px] font-bold bg-black/60 dark:bg-black/80 text-white backdrop-blur-sm border border-white/10">
@@ -271,18 +222,19 @@ function DynamicCategoryCard({
         )}
 
         {/* Active Product Mini Overlay Badge */}
-        {activePreview && (
+        {preview && (
           <div className="absolute bottom-1.5 inset-x-1.5 z-20 px-2 py-1 rounded-lg bg-black/70 dark:bg-black/85 backdrop-blur-md border border-white/15 flex items-center justify-between gap-1 shadow-md group-hover:bg-black/85 transition-all duration-300">
             <span className="text-[10px] font-medium text-white/95 truncate max-w-[95px] sm:max-w-[115px]">
-              {activePreview.title}
+              {preview.title}
             </span>
-            {activePreview.price && (
+            {preview.price && (
               <span className="text-[10px] font-extrabold text-amber-400 flex-shrink-0">
-                {activePreview.price}
+                {preview.price}
               </span>
             )}
           </div>
         )}
+      </div>
       </div>
 
       {/* Category Details & View Action */}
@@ -525,6 +477,12 @@ export default function CategoryCarousel({
   useEffect(() => {
     const el = trackRef.current
     if (!el || !loop) return
+
+    // On touch/mobile devices, rely on hardware-accelerated native swipe to save battery and GPU cycles
+    const isTouch =
+      typeof window !== "undefined" &&
+      (window.matchMedia("(pointer: coarse)").matches || window.innerWidth < 768)
+    if (isTouch) return
 
     let raf = 0
     let last = performance.now()
