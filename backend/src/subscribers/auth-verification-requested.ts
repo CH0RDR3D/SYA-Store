@@ -54,7 +54,7 @@ export default async function authVerificationRequestedHandler({
       template: EmailTemplates.VERIFY_EMAIL,
       data: {
         emailOptions: {
-          replyTo: process.env.RESEND_FROM_EMAIL || 'support@syastore.com',
+          replyTo: process.env.RESEND_FROM_EMAIL || 'info@syastore.com',
           subject: 'Verify your email address - SYA Store',
         },
         verificationLink,
@@ -66,8 +66,7 @@ export default async function authVerificationRequestedHandler({
     logger.info(`[Auth Verification] Successfully dispatched verification email to ${email}`)
   } catch (error) {
     logger.error(
-      `[Auth Verification] Failed to send verification email to ${email}: ${
-        error instanceof Error ? error.message : String(error)
+      `[Auth Verification] Failed to send verification email to ${email}: ${error instanceof Error ? error.message : String(error)
       }`
     )
   }

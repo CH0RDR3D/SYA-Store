@@ -159,10 +159,31 @@ export async function POST(req: NextRequest) {
     const password = deriveBridgePassword(googleSub)
 
     // 1. Register auth identity if not already present
+    let registerToken: string | null = null
     try {
-      await sdk.auth.register("customer", "emailpass", { email, password })
+      const registerResult = await sdk.auth.register("customer", "emailpass", {
+        email,
+        password,
+      })
+      // Medusa may return a verification token from register
+      if (typeof registerResult === "string") {
+        registerToken = registerResult
+      } else if (typeof registerResult === "object" && (registerResult as any)?.token) {
+        registerToken = (registerResult as any).token
+      }
     } catch {
       // Identity already registered; proceed directly to login
+    }
+
+    // 1b. Auto-confirm if Medusa returned a verification token on register
+    //     Google has already verified this email, so skipping verification is safe.
+    if (registerToken) {
+      try {
+        await sdk.auth.verification.confirm({ code: registerToken })
+      } catch (verErr) {
+        // May fail if token already used – continue anyway
+        console.warn("[Google One Tap] Register verification confirm attempt:", verErr)
+      }
     }
 
     // 2. Exchange credentials for Medusa JWT
@@ -172,10 +193,34 @@ export async function POST(req: NextRequest) {
         email,
         password,
       })
-      medusaToken =
-        typeof authResult === "string"
-          ? authResult
-          : (authResult as any)?.token ?? null
+
+      if (typeof authResult === "string") {
+        medusaToken = authResult
+      } else if (
+        typeof authResult === "object" &&
+        (authResult as any)?.verification_required
+      ) {
+        // Backend still requires verification – auto-confirm with returned token
+        const verToken = (authResult as any).token as string | undefined
+        if (verToken) {
+          try {
+            await sdk.auth.verification.confirm({ code: verToken })
+          } catch {
+            // Ignore – may already be consumed
+          }
+          // Re-attempt login after confirmation
+          const retryResult = await sdk.auth.login("customer", "emailpass", {
+            email,
+            password,
+          })
+          medusaToken =
+            typeof retryResult === "string"
+              ? retryResult
+              : (retryResult as any)?.token ?? null
+        }
+      } else {
+        medusaToken = (authResult as any)?.token ?? null
+      }
     } catch (loginErr) {
       console.error("[Google One Tap] Medusa login failed:", loginErr)
       return NextResponse.json(

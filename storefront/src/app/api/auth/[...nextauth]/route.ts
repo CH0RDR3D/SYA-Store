@@ -67,10 +67,31 @@ export const authOptions: NextAuthOptions = {
       const password = deriveBridgePassword(googleSub)
 
       // 1. Register auth identity (idempotent – ignore "already exists")
+      let registerToken: string | null = null
       try {
-        await sdk.auth.register("customer", "emailpass", { email, password })
+        const registerResult = await sdk.auth.register("customer", "emailpass", {
+          email,
+          password,
+        })
+        // Some Medusa versions return a verification token on register
+        if (typeof registerResult === "string") {
+          registerToken = registerResult
+        } else if (typeof registerResult === "object" && (registerResult as any)?.token) {
+          registerToken = (registerResult as any).token
+        }
       } catch {
         // Identity already exists – proceed to login
+      }
+
+      // 1b. Auto-confirm email verification if Medusa returned a verification token
+      //     Google has already verified this email address, so it is safe to skip.
+      if (registerToken) {
+        try {
+          await sdk.auth.verification.confirm({ code: registerToken })
+        } catch (verErr) {
+          // May fail if token already used or not applicable – continue anyway
+          console.warn("[NextAuth] Register verification confirm attempt:", verErr)
+        }
       }
 
       // 2. Exchange credentials for a Medusa JWT
@@ -80,10 +101,34 @@ export const authOptions: NextAuthOptions = {
           email,
           password,
         })
-        medusaToken =
-          typeof authResult === "string"
-            ? authResult
-            : (authResult as any)?.token ?? null
+
+        if (typeof authResult === "string") {
+          medusaToken = authResult
+        } else if (
+          typeof authResult === "object" &&
+          (authResult as any)?.verification_required
+        ) {
+          // Backend still requires verification – auto-confirm with the returned token
+          const verToken = (authResult as any).token as string | undefined
+          if (verToken) {
+            try {
+              await sdk.auth.verification.confirm({ code: verToken })
+            } catch {
+              // Ignore – token may already be consumed
+            }
+            // Re-attempt login after confirmation
+            const retryResult = await sdk.auth.login("customer", "emailpass", {
+              email,
+              password,
+            })
+            medusaToken =
+              typeof retryResult === "string"
+                ? retryResult
+                : (retryResult as any)?.token ?? null
+          }
+        } else {
+          medusaToken = (authResult as any)?.token ?? null
+        }
       } catch (err) {
         console.error("[NextAuth] Medusa login failed:", err)
         return false
