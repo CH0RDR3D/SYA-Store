@@ -156,129 +156,167 @@ export async function POST(req: NextRequest) {
       tokenInfo.name?.trim().split(/\s+/).slice(1).join(" ") ||
       ""
 
-    const password = deriveBridgePassword(googleSub)
+    const backendUrl =
+      process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL || "http://localhost:9000"
+    const publishableKey =
+      process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY || ""
+    const bridgeSecret =
+      process.env.AUTH_BRIDGE_SECRET ||
+      process.env.NEXTAUTH_SECRET ||
+      "c0a0f3f9fee091c3caea61c45fb8be2270d32811f54d0257aa13322f615b59b2"
 
-    // 1. Register auth identity if not already present
-    let registerToken: string | null = null
-    try {
-      const registerResult = await sdk.auth.register("customer", "emailpass", {
-        email,
-        password,
-      })
-      // Medusa may return a verification token from register
-      if (typeof registerResult === "string") {
-        registerToken = registerResult
-      } else if (typeof registerResult === "object" && (registerResult as any)?.token) {
-        registerToken = (registerResult as any).token
-      }
-    } catch {
-      // Identity already registered; proceed directly to login
-    }
-
-    // 1b. Auto-confirm if Medusa returned a verification token on register
-    //     Google has already verified this email, so skipping verification is safe.
-    if (registerToken) {
-      try {
-        await sdk.auth.verification.confirm({ code: registerToken })
-      } catch (verErr) {
-        // May fail if token already used – continue anyway
-        console.warn("[Google One Tap] Register verification confirm attempt:", verErr)
-      }
-    }
-
-    // 2. Exchange credentials for Medusa JWT
     let medusaToken: string | null = null
+
+    // Primary: Direct call to backend /store/auth/google
+    // Automatically creates/links customer and returns valid customer JWT
     try {
-      const authResult = await sdk.auth.login("customer", "emailpass", {
-        email,
-        password,
+      const bridgeRes = await fetch(`${backendUrl}/store/auth/google`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-publishable-api-key": publishableKey,
+          "x-auth-bridge-secret": bridgeSecret,
+        },
+        body: JSON.stringify({
+          email,
+          google_id: googleSub,
+          first_name: firstName,
+          last_name: lastName,
+          name: tokenInfo.name,
+          avatar: tokenInfo.picture,
+        }),
       })
 
-      if (typeof authResult === "string") {
-        medusaToken = authResult
-      } else if (
-        typeof authResult === "object" &&
-        (authResult as any)?.verification_required
-      ) {
-        // Backend still requires verification – auto-confirm with returned token
-        const verToken = (authResult as any).token as string | undefined
-        if (verToken) {
-          try {
-            await sdk.auth.verification.confirm({ code: verToken })
-          } catch {
-            // Ignore – may already be consumed
-          }
-          // Re-attempt login after confirmation
-          const retryResult = await sdk.auth.login("customer", "emailpass", {
-            email,
-            password,
-          })
-          medusaToken =
-            typeof retryResult === "string"
-              ? retryResult
-              : (retryResult as any)?.token ?? null
-        }
+      if (bridgeRes.ok) {
+        const bridgeData = await bridgeRes.json()
+        medusaToken = bridgeData.token
       } else {
-        medusaToken = (authResult as any)?.token ?? null
-      }
-    } catch (loginErr) {
-      console.error("[Google One Tap] Medusa login failed:", loginErr)
-      return NextResponse.json(
-        { error: "Failed to authenticate with store backend" },
-        { status: 500 }
-      )
-    }
-
-    if (!medusaToken) {
-      return NextResponse.json(
-        { error: "Authentication succeeded but no session token was issued" },
-        { status: 500 }
-      )
-    }
-
-    // 3. Upsert customer profile in Medusa
-    const authHeader = { authorization: `Bearer ${medusaToken}` }
-    try {
-      const customerExists = await sdk.store.customer
-        .retrieve({}, authHeader)
-        .then(() => true)
-        .catch(() => false)
-
-      if (!customerExists) {
-        await sdk.store.customer.create(
-          {
-            email,
-            first_name: firstName,
-            last_name: lastName,
-          },
-          {},
-          authHeader
+        console.warn(
+          `[Google One Tap] Direct bridge returned ${bridgeRes.status}, falling back to legacy emailpass bridge`
         )
+      }
+    } catch (bridgeErr) {
+      console.warn("[Google One Tap] Direct bridge error, falling back:", bridgeErr)
+    }
 
-        // Refresh token to bind the customer actor
-        const refreshed = await sdk.auth.login("customer", "emailpass", {
+    // Fallback: Legacy emailpass bridge if custom endpoint was not reached
+    if (!medusaToken) {
+      const password = deriveBridgePassword(googleSub)
+
+      // 1. Register auth identity if not already present
+      let registerToken: string | null = null
+      try {
+        const registerResult = await sdk.auth.register("customer", "emailpass", {
           email,
           password,
         })
-        medusaToken =
-          typeof refreshed === "string"
-            ? refreshed
-            : (refreshed as any)?.token ?? medusaToken
-      } else {
-        await sdk.store.customer
-          .update(
+        if (typeof registerResult === "string") {
+          registerToken = registerResult
+        } else if (typeof registerResult === "object" && (registerResult as any)?.token) {
+          registerToken = (registerResult as any).token
+        }
+      } catch {
+        // Identity already registered; proceed directly to login
+      }
+
+      // 1b. Auto-confirm if Medusa returned a verification token on register
+      if (registerToken) {
+        try {
+          await sdk.auth.verification.confirm({ code: registerToken })
+        } catch (verErr) {
+          console.warn("[Google One Tap] Register verification confirm attempt:", verErr)
+        }
+      }
+
+      // 2. Exchange credentials for Medusa JWT
+      try {
+        const authResult = await sdk.auth.login("customer", "emailpass", {
+          email,
+          password,
+        })
+
+        if (typeof authResult === "string") {
+          medusaToken = authResult
+        } else if (
+          typeof authResult === "object" &&
+          (authResult as any)?.verification_required
+        ) {
+          const verToken = (authResult as any).token as string | undefined
+          if (verToken) {
+            try {
+              await sdk.auth.verification.confirm({ code: verToken })
+            } catch {
+              // Ignore
+            }
+            const retryResult = await sdk.auth.login("customer", "emailpass", {
+              email,
+              password,
+            })
+            medusaToken =
+              typeof retryResult === "string"
+                ? retryResult
+                : (retryResult as any)?.token ?? null
+          }
+        } else {
+          medusaToken = (authResult as any)?.token ?? null
+        }
+      } catch (loginErr) {
+        console.error("[Google One Tap] Medusa login failed:", loginErr)
+        return NextResponse.json(
+          { error: "Failed to authenticate with store backend" },
+          { status: 500 }
+        )
+      }
+
+      if (!medusaToken) {
+        return NextResponse.json(
+          { error: "Authentication succeeded but no session token was issued" },
+          { status: 500 }
+        )
+      }
+
+      // 3. Upsert customer profile in Medusa in fallback mode
+      const authHeader = { authorization: `Bearer ${medusaToken}` }
+      try {
+        const customerExists = await sdk.store.customer
+          .retrieve({}, authHeader)
+          .then(() => true)
+          .catch(() => false)
+
+        if (!customerExists) {
+          await sdk.store.customer.create(
             {
+              email,
               first_name: firstName,
               last_name: lastName,
             },
             {},
             authHeader
           )
-          .catch(() => {})
+
+          const refreshed = await sdk.auth.login("customer", "emailpass", {
+            email,
+            password,
+          })
+          medusaToken =
+            typeof refreshed === "string"
+              ? refreshed
+              : (refreshed as any)?.token ?? medusaToken
+        } else {
+          await sdk.store.customer
+            .update(
+              {
+                first_name: firstName,
+                last_name: lastName,
+              },
+              {},
+              authHeader
+            )
+            .catch(() => {})
+        }
+      } catch (upsertErr) {
+        console.warn("[Google One Tap] Customer profile upsert warning:", upsertErr)
       }
-    } catch (upsertErr) {
-      console.warn("[Google One Tap] Customer profile upsert warning:", upsertErr)
-      // Non-fatal if session token was already obtained
     }
 
     // 4. Set Medusa authenticated cookie

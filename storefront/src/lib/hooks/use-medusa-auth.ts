@@ -23,10 +23,38 @@ export function useMedusaAuth() {
   const synced = useRef(false)
 
   /** Trigger Google OAuth popup/redirect */
-  const signInWithGoogle = async () => {
+  const signInWithGoogle = async (
+    optionsOrEvent?: { callbackUrl?: string } | React.MouseEvent | string | unknown
+  ) => {
     setIsLoading(true)
     try {
-      const callbackUrl = typeof window !== "undefined" ? window.location.href : "/account"
+      let customCallbackUrl: string | undefined = undefined
+      if (typeof optionsOrEvent === "string") {
+        customCallbackUrl = optionsOrEvent
+      } else if (
+        optionsOrEvent &&
+        typeof optionsOrEvent === "object" &&
+        "callbackUrl" in (optionsOrEvent as any) &&
+        typeof (optionsOrEvent as any).callbackUrl === "string"
+      ) {
+        customCallbackUrl = (optionsOrEvent as any).callbackUrl
+      }
+
+      let callbackUrl = "/account"
+      if (customCallbackUrl) {
+        callbackUrl = customCallbackUrl
+      } else if (typeof window !== "undefined") {
+        const urlParams = new URLSearchParams(window.location.search)
+        const returnUrl = urlParams.get("return_url") || urlParams.get("callbackUrl")
+        if (returnUrl) {
+          callbackUrl = returnUrl
+        } else {
+          const currentPath = window.location.pathname + window.location.search
+          if (!currentPath.includes("/login") && !currentPath.includes("/register")) {
+            callbackUrl = currentPath
+          }
+        }
+      }
       await signIn("google", { callbackUrl })
     } catch (err) {
       console.error("[useMedusaAuth] Google sign-in error:", err)
@@ -80,11 +108,17 @@ export function useMedusaAuth() {
         .then(() => {
           if (typeof window !== "undefined") {
             window.sessionStorage.setItem(syncKey, "true")
-            const path = window.location.pathname
-            if (path.includes("/login") || path.includes("/register")) {
-              router.replace("/account")
+            const urlParams = new URLSearchParams(window.location.search)
+            const returnUrl = urlParams.get("return_url") || urlParams.get("callbackUrl")
+            if (returnUrl) {
+              router.replace(returnUrl)
             } else {
-              router.refresh()
+              const path = window.location.pathname
+              if (path.includes("/login") || path.includes("/register")) {
+                router.replace("/account")
+              } else {
+                router.refresh()
+              }
             }
           }
         })
