@@ -235,7 +235,6 @@ function DynamicCategoryCard({
           </div>
         )}
       </div>
-      </div>
 
       {/* Category Details & View Action */}
       <div className="p-3 sm:p-3.5 flex items-center justify-between gap-2 border-t border-black/5 dark:border-white/5 bg-[var(--bg-surface)]">
