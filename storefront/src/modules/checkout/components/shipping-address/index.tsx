@@ -2,6 +2,7 @@ import { HttpTypes } from "@medusajs/types"
 import { Container } from "@medusajs/ui"
 import Input from "@modules/common/components/input"
 import { useMedusaAuth } from "@lib/hooks/use-medusa-auth"
+import { resolvePrefillAddress } from "@lib/util/prefill-address"
 import { mapKeys } from "lodash"
 import React, { useCallback, useEffect, useMemo, useState } from "react"
 import AddressSelect from "../address-select"
@@ -28,32 +29,42 @@ const ShippingAddress = ({
   const activeAccountPhone = customer?.phone || ""
 
   const [formData, setFormData] = useState<Record<string, any>>(() => {
-    const initEmail =
-      customer?.email ||
-      session?.user?.email ||
-      (cart?.email && !cart.email.includes("@example.com") ? cart.email : "") ||
-      cart?.email ||
-      ""
-    const defaultCountry =
-      cart?.shipping_address?.country_code?.toUpperCase() ||
-      cart?.region?.countries?.[0]?.iso_2?.toUpperCase() ||
-      ""
+    // Use the centralized prefill resolver for the initial state
+    const prefill = resolvePrefillAddress(
+      customer,
+      cart,
+      session?.user?.email,
+      session?.user?.name
+    )
 
+    // Cart-saved values always win over profile defaults (user may have already typed something)
     return {
       "shipping_address.first_name":
-        cart?.shipping_address?.first_name || customer?.first_name || "",
+        cart?.shipping_address?.first_name || prefill.first_name,
       "shipping_address.last_name":
-        cart?.shipping_address?.last_name || customer?.last_name || "",
-      "shipping_address.address_1": cart?.shipping_address?.address_1 || "",
-      "shipping_address.postal_code": cart?.shipping_address?.postal_code || "",
-      "shipping_address.city": cart?.shipping_address?.city || "",
-      "shipping_address.country_code": defaultCountry,
-      "shipping_address.province": cart?.shipping_address?.province || "",
+        cart?.shipping_address?.last_name || prefill.last_name,
+      "shipping_address.address_1":
+        cart?.shipping_address?.address_1 || prefill.address_1,
+      "shipping_address.address_2":
+        (cart?.shipping_address as any)?.address_2 || prefill.address_2,
+      "shipping_address.company":
+        (cart?.shipping_address as any)?.company || prefill.company,
+      "shipping_address.postal_code":
+        cart?.shipping_address?.postal_code || prefill.postal_code,
+      "shipping_address.city":
+        cart?.shipping_address?.city || prefill.city,
+      "shipping_address.country_code":
+        cart?.shipping_address?.country_code?.toUpperCase() ||
+        prefill.country_code ||
+        cart?.region?.countries?.[0]?.iso_2?.toUpperCase() ||
+        "",
+      "shipping_address.province":
+        cart?.shipping_address?.province || prefill.province,
       "shipping_address.phone":
-        cart?.shipping_address?.phone || customer?.phone || "",
+        cart?.shipping_address?.phone || prefill.phone,
       "location.lat": "",
       "location.lng": "",
-      email: initEmail,
+      email: prefill.email,
     }
   })
 
@@ -96,12 +107,15 @@ const ShippingAddress = ({
             prevState["shipping_address.last_name"] ||
             "",
           "shipping_address.address_1": address?.address_1 || "",
+          "shipping_address.address_2": (address as any)?.address_2 || "",
+          "shipping_address.company": (address as any)?.company || "",
           "shipping_address.postal_code": address?.postal_code || "",
           "shipping_address.city": address?.city || "",
           "shipping_address.country_code":
             address?.country_code?.toUpperCase() ||
             cart?.region?.countries?.[0]?.iso_2?.toUpperCase() ||
             "",
+          "shipping_address.province": address?.province || "",
           "shipping_address.phone":
             address?.phone ||
             customer?.phone ||
@@ -250,6 +264,34 @@ const ShippingAddress = ({
           )}
         </div>
       </div>
+
+      {/* Company — shown only when the customer has a company value saved */}
+      {formData["shipping_address.company"] && (
+        <div className="mt-4">
+          <Input
+            label="Company (optional)"
+            name="shipping_address.company"
+            autoComplete="organization"
+            value={formData["shipping_address.company"]}
+            onChange={handleChange}
+            data-testid="shipping-company-input"
+          />
+        </div>
+      )}
+
+      {/* Address Line 2 — shown only when the customer has an address_2 value saved */}
+      {formData["shipping_address.address_2"] && (
+        <div className="mt-4">
+          <Input
+            label="Apartment, suite, etc. (optional)"
+            name="shipping_address.address_2"
+            autoComplete="address-line2"
+            value={formData["shipping_address.address_2"]}
+            onChange={handleChange}
+            data-testid="shipping-address-2-input"
+          />
+        </div>
+      )}
 
       <input
         type="hidden"

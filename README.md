@@ -15,88 +15,157 @@
   </a>
 </p>
 
-<h2 align="center">
-  Prebaked SYA Store monorepo
-</h2>
-<h4 align="center">
-  Backend + Storefront + postgres + redis + S3 file storage + MeiliSearch
-</h4>
+<h1 align="center">
+  SYA Store — Medusa v2 & Next.js 15 Monorepo
+</h1>
+
 <p align="center">
-Combine Medusa's modules for your commerce backend with the newest Next.js 14 features for a performant storefront.</p>
+  A high-performance ecommerce platform combining <strong>Medusa v2.17.2</strong> backend with a responsive <strong>Next.js 15 App Router</strong> storefront.
+</p>
 
-<h2 align="center">Need help? See repository docs and runbooks.</h2>
+<p align="center">
+  <strong>Backend (Medusa 2.0)</strong> • <strong>Storefront (Next.js 15)</strong> • <strong>PostgreSQL</strong> • <strong>Redis</strong> • <strong>S3/MinIO</strong> • <strong>Meilisearch</strong>
+</p>
 
-<h3 align="center">
-  NEW! Looking for medusa B2B? <br>
-  <a href="https://github.com/rpuls/medusa-b2b-for-railway/">Checkout the new B2B quickstart for Railway repository</a>
-</h3>
+---
 
+## 🚀 Overview
 
+SYA Store is an enterprise-ready headless ecommerce solution architected as a monorepo:
 
-## About this boilerplate
-This boilerplate is a monorepo consisting of the officially released MedusaJS 2.0 backend and storefront application. It is a pre-configured, ready-to-deploy solution, modified for seamless deployment on [railway.app](https://railway.app?referralCode=-Yg50p).
+- **`backend/`**: Medusa v2.17.2 commerce engine with automated SKU normalization, option value sanitation, PostgreSQL database, custom workflows, and Resend transactional email templates.
+- **`storefront/`**: Next.js 15 App Router storefront with frosted-glass responsive navigation, instant Google authentication, intelligent checkout autofill, dynamic multi-region shipping, and animated product carousels.
 
-Updated: to `version 2.17.2` 🥳
+---
 
-## Deploy with no manual setup in minutes
+## ✨ Key Features & Architectural Enhancements
+
+### 1. SKU Duplication Prevention & Sanitization
+- **Centralized Normalizer**: Sanitizes SKU strings (`trim`, collapses whitespace, removes non-printable unicode characters, and standardizes casing).
+- **Write-Time Middleware**: Intercepts variant create/update endpoints (`/admin/products/:id/variants`, `/admin/products`) to prevent duplicate SKU generation.
+- **Audit & Cleanup CLI**:
+  ```bash
+  # In backend/
+  npx medusa exec ./src/scripts/sku-audit.ts          # Dry-run audit report
+  npx medusa exec ./src/scripts/sku-audit.ts -- --merge # Safe deduplication
+  ```
+- **Regression Suite**: Tested with Jest (`src/__tests__/sku-normalizer.spec.ts`).
+
+### 2. Product Option Value Normalization
+- **Title-Case Sanitizer**: Eliminates duplicate variant options (e.g. `Red`, `RED`, ` Red `) by normalizing whitespace and formatting to title case before save.
+- **Option Audit CLI**:
+  ```bash
+  # In backend/
+  npx medusa exec ./src/scripts/option-value-audit.ts          # Audit report
+  npx medusa exec ./src/scripts/option-value-audit.ts -- --merge # Safe merge
+  ```
+- **Regression Suite**: Tested with Jest (`src/__tests__/option-value-normalizer.spec.ts`).
+
+### 3. Smart Checkout Auto-Fill
+- **Priority Address Resolution**: Seamlessly prefills customer shipping details preferring the default shipping address, falling back to recent successful order addresses.
+- **Progressive Disclosure**: Non-destructive checkout experience with expandable inputs for Company and Address Line 2 without overwriting customer profile defaults.
+
+### 4. Dynamic Shipping Methods
+- **Accurate Label Presentation**: Dynamically resolves shipping method labels from `cart.shipping_methods` eliminating hardcoded delivery assumptions throughout Cart, Checkout, Review, Payment, and Order Confirmation.
+
+### 5. Identity, Google One Tap & Responsive Navigation
+- **Navbar Account Dropdown**: Greets authenticated users with `"Hi, {firstName}"` and features an interactive hover/click dropdown with:
+  - User profile details & Verified Customer status
+  - 👤 **My Account** (`/account`)
+  - 📦 **My Orders** (`/account/orders`)
+  - 📍 **Saved Addresses** (`/account/addresses`)
+  - 🚪 **Sign Out** (synchronously clears Medusa and NextAuth sessions)
+- **Google One Tap Fallback**: Configured to bypass native FedCM token rejects in Incognito/partitioned environments while dispatching instant `sya:auth` events for immediate client reactivity.
+
+### 6. Full Product Hydration
+- Enhanced Medusa remote query field wildcards (`*`) to guarantee full hydration of product descriptions, dimensions, weight, and materials, paired with graceful fallbacks for product information accordions.
+
+---
+
+## 🛠️ Preconfigured Integrations
+
+- **Authentication**: Google OAuth + Google One Tap (NextAuth + Medusa JWT integration).
+- **Transactional Emails**: Resend & React Email templates ([Setup Guide](backend/src/modules/email-notifications/README.md)).
+- **Payment Providers**: Stripe & Lenco payment gateways.
+- **Location & Maps**: Google Maps Places API for checkout address selection.
+- **Search Engine**: Meilisearch product catalog indexing.
+- **Asset Storage**: S3-compatible storage (Railway Buckets, Cloudflare R2, AWS S3, or MinIO).
+
+---
+
+## 💻 Local Development Setup
+
+### 1. Start Local Infrastructure (Docker Compose)
+The root directory includes a `docker-compose.yml` provisioning **PostgreSQL**, **Redis**, **Meilisearch**, and **MinIO**:
+
+```bash
+docker compose up -d
+```
+- **MinIO Console**: `http://localhost:9005` (`medusa` / `supersecret`)
+- **Meilisearch**: `http://localhost:7700`
+
+### 2. Backend Setup
+
+```bash
+cd backend
+
+# Install dependencies
+pnpm install # or npm install
+
+# Configure environment
+cp .env.template .env
+# Set DATABASE_URL and secrets in .env
+
+# Initialize backend (run migrations & seed default data)
+npm run ib
+
+# Start backend dev server
+npm run dev
+```
+*Backend runs on `http://localhost:9000` (Admin dashboard at `http://localhost:9000/app`).*
+
+### 3. Storefront Setup
+
+```bash
+cd storefront
+
+# Install dependencies
+pnpm install # or npm install
+
+# Configure environment
+cp .env.local.template .env.local
+# Verify NEXT_PUBLIC_MEDUSA_BACKEND_URL=http://localhost:9000
+
+# Start storefront dev server
+npm run dev
+```
+*Storefront runs on `http://localhost:3000`.*
+
+---
+
+## 🧪 Testing & Verification
+
+Run backend unit tests for SKU and option normalization:
+```bash
+cd backend
+npx jest src/__tests__/sku-normalizer.spec.ts src/__tests__/option-value-normalizer.spec.ts
+```
+
+Run storefront type checks:
+```bash
+cd storefront
+npx tsc --noEmit --skipLibCheck
+```
+
+---
+
+## ☁️ Deployment (Railway)
+
+This repository is optimized for one-click or continuous deployment on [Railway](https://railway.app):
+
 [![Deploy on Railway](https://railway.com/button.svg)](https://railway.com/deploy)
 
-![Railway MeduaJS Service overview](https://res-5.cloudinary.com/hczpmiapo/image/upload/q_auto/v1/ghost-blog-images/medusa-2-17-2-on-railway-service-overview-png.png?_a=BAMAPqiu0)
-
-
-## Preconfigured 3rd party integrations
-
-- S3-compatible file storage: Uses Medusa's stock S3 file provider, and works with any S3-compatible object storage - Railway buckets, AWS S3, Cloudflare R2, MinIO, etc. Configure with the `S3_*` environment variables (see `backend/.env.template`). Legacy `MINIO_*` variables from older deployments of this template are still supported as a fallback (ignored as soon as any `S3_*` variable is set). Note: the bucket must already exist and, for product images, allow public read (via a bucket policy) - the backend does not create buckets or set policies. Uploads are sent without ACL headers by default (compatible with Railway buckets, R2 and new AWS buckets); set `S3_ACL=public-read` only for legacy ACL-based buckets.
-- Resend email integration [Watch setup video](https://youtu.be/pbdZm26YDpE?si=LQTHWeZMLD4w3Ahw) - special thanks to [aleciavogel](https://github.com/aleciavogel) for Resend notification service, and react-email implementation! [README](backend/src/modules/email-notifications/README.md)
-- Stripe payment service: [Watch setup video](https://youtu.be/dcSOpIzc1Og)
-- Meilisearch integration by [Rokmohar](https://github.com/rokmohar/medusa-plugin-meilisearch): Adds powerful product search capabilities to your store. When deployed on Railway using the template, MeiliSearch is automatically configured. (For non-railway'ers: [Watch setup video](https://youtu.be/hrXcc5MjApI))
-
-# local setup
-
-## Local infrastructure with docker compose (optional, recommended)
-
-The repository root contains a `docker-compose.yml` that mirrors the services provisioned by the Railway template: **postgres**, **redis**, **meilisearch** and an S3-compatible object store (**MinIO**, standing in for a Railway bucket).
-
-- `docker compose up -d` starts everything. A one-shot init job creates a public `medusa-media` bucket automatically.
-- The commented `S3_*` and `MEILISEARCH_*` values in `backend/.env.template` match these services - uncomment them in your `backend/.env` to enable file storage and search locally.
-- MinIO console: http://localhost:9005 (login: `medusa` / `supersecret`), Meilisearch: http://localhost:7700.
-
-## Backend
-Video instructions: https://youtu.be/PPxenu7IjGM
-
-- `cd backend/`
-- `pnpm install` or `npm i`
-- Rename `.env.template` ->  `.env`
-- To connect to your online database from your local machine, copy the `DATABASE_URL` value auto-generated on Railway and add it to your `.env` file.
-  - If connecting to a new database, for example a local one, run `pnpm ib` or `npm run ib` to seed the database.
-- `pnpm dev` or `npm run dev`
-
-### requirements
-- **postgres database** (Automatic setup when using the Railway template)
-- **redis** (Automatic setup when using the Railway template) - fallback to simulated redis.
-- **S3-compatible storage** (Automatic setup when using the Railway template) - fallback to local storage.
-- **Meilisearch** (Automatic setup when using the Railway template)
-
-### commands
-
-`cd backend/`
-`npm run ib` or `pnpm ib` will initialize the backend by running migrations and seed the database with required system data.
-`npm run dev` or `pnpm dev` will start the backend (and admin dashboard frontend on `localhost:9000/app`) in development mode.
-`pnpm build && pnpm start` will compile the project and run from compiled source. This can be useful for reproducing issues on your cloud instance.
-
-## Storefront
-Video instructions: https://youtu.be/PPxenu7IjGM
-
-- `cd storefront/`
-- Install dependencies `npm i` or `pnpm i`
-- Rename `.env.local.template` ->  `.env.local`
-
-### requirements
-- A running backend on port 9000 is required to fetch product data and other information needed to build Next.js pages.
-
-### commands
-`cd storefront/`
-`npm run dev` or `pnpm dev` will run the storefront on uncompiled code, with hot-reloading as files are saved with changes.
-
-## Useful resources
-- How to set up credit card payment with Stripe payment module: https://youtu.be/dcSOpIzc1Og
+1. Connect this repository to your Railway project.
+2. Link the backend service to the Railway PostgreSQL and Redis plugins.
+3. Configure environment variables using `backend/.env.template` and `storefront/.env.local.template`.
+4. Deploy the backend service, run database migrations, and deploy the storefront service.

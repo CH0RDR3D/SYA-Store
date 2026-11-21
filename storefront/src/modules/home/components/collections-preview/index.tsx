@@ -84,6 +84,9 @@ function DynamicProductCardSlot({
 }: DynamicProductCardSlotProps) {
   const [isSlotHovered, setIsSlotHovered] = useState(false)
 
+  const numProducts = productsPool.length
+  const activeProductIdx = 0
+  const activeImageIdx = 0
   const currentProduct = productsPool[0]
 
   // Extract preview images for hover effect

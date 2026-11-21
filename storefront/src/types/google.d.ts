@@ -74,26 +74,7 @@ export interface GoogleIdConfiguration {
 
 declare global {
   interface Window {
-    google?: {
-      accounts: {
-        id: {
-          initialize: (config: GoogleIdConfiguration) => void
-          prompt: (
-            momentListener?: (
-              notification: GooglePromptMomentNotification
-            ) => void
-          ) => void
-          renderButton: (
-            parent: HTMLElement,
-            options: GoogleGsiButtonConfiguration
-          ) => void
-          disableAutoSelect: () => void
-          storeCredential: (credential: any, callback?: () => void) => void
-          cancel: () => void
-          revoke: (hint: string, callback?: (done: boolean) => void) => void
-        }
-      }
-    }
+    google?: any
   }
 }
 

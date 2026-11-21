@@ -46,6 +46,7 @@ export default function MobileNavDrawer({
   const [isCategoriesOpen, setIsCategoriesOpen] = useState(false)
   const [isCollectionsOpen, setIsCollectionsOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
+  const [liveUser, setLiveUser] = useState<any>(null)
 
   const pathname = usePathname()
   const params = useParams()
@@ -58,9 +59,24 @@ export default function MobileNavDrawer({
   const { session, signOut } = useMedusaAuth()
   const countrySelectToggle = useToggleState()
 
-  // Track hydration mount state for React Portal
+  // Track hydration mount state for React Portal and listen to auth events
   useEffect(() => {
     setMounted(true)
+
+    try {
+      const cached = window.localStorage.getItem("sya_user")
+      if (cached) {
+        setLiveUser(JSON.parse(cached))
+      }
+    } catch {}
+
+    const handleAuth = (e: Event) => {
+      const customEvent = e as CustomEvent<any>
+      setLiveUser(customEvent.detail || null)
+    }
+
+    window.addEventListener("sya:auth", handleAuth)
+    return () => window.removeEventListener("sya:auth", handleAuth)
   }, [])
 
   // Close drawer on route change
@@ -98,8 +114,11 @@ export default function MobileNavDrawer({
   const topCategories = categories.filter((c) => !c.parent_category)
   const customerName =
     [customer?.first_name, customer?.last_name].filter(Boolean).join(" ") ||
+    [liveUser?.first_name, liveUser?.last_name].filter(Boolean).join(" ") ||
+    liveUser?.name ||
     session?.user?.name ||
     customer?.email ||
+    liveUser?.email ||
     session?.user?.email
 
   const handleSearchSubmit = (e: React.FormEvent) => {
@@ -151,12 +170,12 @@ export default function MobileNavDrawer({
         <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain px-4 py-4 space-y-5">
           {/* User Account Card */}
           <div className="p-3.5 rounded-2xl border border-[var(--surface-border)] bg-[var(--bg-card)]">
-            {customer || session?.user ? (
+            {customer || session?.user || liveUser ? (
               <div className="space-y-2.5">
                 <div className="flex items-center gap-3">
-                  {session?.user?.image ? (
+                  {session?.user?.image || liveUser?.picture ? (
                     <img
-                      src={session.user.image}
+                      src={session?.user?.image || liveUser?.picture}
                       alt={customerName || "User"}
                       className="w-10 h-10 rounded-full border border-amber-500 object-cover"
                     />
@@ -173,7 +192,7 @@ export default function MobileNavDrawer({
                       {customerName}
                     </p>
                     <p className="text-xs text-[var(--text-muted)] truncate">
-                      {customer?.email || session?.user?.email}
+                      {customer?.email || session?.user?.email || liveUser?.email}
                     </p>
                   </div>
                 </div>

@@ -42,38 +42,67 @@ const ProductTabs = ({ product }: ProductTabsProps) => {
 }
 
 const ProductInfoTab = ({ product }: ProductTabsProps) => {
+  const hasSpecs = Boolean(
+    product.material ||
+    product.origin_country ||
+    product.type ||
+    product.weight ||
+    (product.length && product.width && product.height)
+  )
+
+  const description = product.description || product.subtitle
+
   return (
-    <div className="text-small-regular py-8">
-      <div className="grid grid-cols-2 gap-x-8">
-        <div className="flex flex-col gap-y-4">
-          <div>
-            <span className="font-semibold">Material</span>
-            <p>{product.material ? product.material : "-"}</p>
-          </div>
-          <div>
-            <span className="font-semibold">Country of origin</span>
-            <p>{product.origin_country ? product.origin_country : "-"}</p>
-          </div>
-          <div>
-            <span className="font-semibold">Type</span>
-            <p>{product.type ? product.type.value : "-"}</p>
-          </div>
+    <div className="text-small-regular py-4 space-y-6 text-[var(--text-secondary)]">
+      {description ? (
+        <div className="space-y-1.5">
+          <span className="font-semibold text-[var(--text-primary)] text-xs uppercase tracking-wider">
+            Description
+          </span>
+          <p className="whitespace-pre-line leading-relaxed text-sm text-[var(--text-secondary)]">
+            {description}
+          </p>
         </div>
-        <div className="flex flex-col gap-y-4">
-          <div>
-            <span className="font-semibold">Weight</span>
-            <p>{product.weight ? `${product.weight} g` : "-"}</p>
-          </div>
-          <div>
-            <span className="font-semibold">Dimensions</span>
-            <p>
-              {product.length && product.width && product.height
-                ? `${product.length}L x ${product.width}W x ${product.height}H`
-                : "-"}
-            </p>
-          </div>
+      ) : (
+        <div className="py-1 text-sm text-[var(--text-secondary)] italic">
+          No additional description provided for this product.
         </div>
-      </div>
+      )}
+
+      {hasSpecs && (
+        <div className="grid grid-cols-2 gap-x-8 gap-y-4 pt-4 border-t border-[var(--surface-border)]">
+          {product.material && (
+            <div>
+              <span className="font-semibold text-[var(--text-primary)]">Material</span>
+              <p>{product.material}</p>
+            </div>
+          )}
+          {product.origin_country && (
+            <div>
+              <span className="font-semibold text-[var(--text-primary)]">Country of origin</span>
+              <p>{product.origin_country}</p>
+            </div>
+          )}
+          {product.type && (
+            <div>
+              <span className="font-semibold text-[var(--text-primary)]">Type</span>
+              <p>{product.type.value}</p>
+            </div>
+          )}
+          {product.weight && (
+            <div>
+              <span className="font-semibold text-[var(--text-primary)]">Weight</span>
+              <p>{product.weight} g</p>
+            </div>
+          )}
+          {product.length && product.width && product.height && (
+            <div>
+              <span className="font-semibold text-[var(--text-primary)]">Dimensions</span>
+              <p>{`${product.length}L x ${product.width}W x ${product.height}H`}</p>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   )
 }

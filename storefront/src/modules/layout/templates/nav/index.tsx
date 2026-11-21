@@ -93,6 +93,7 @@ export default async function Nav() {
             {/* Account link (Both Desktop and Mobile) */}
             <div className="flex items-center">
               <AccountLink
+                customer={customer}
                 customerName={
                   [customer?.first_name, customer?.last_name]
                     .filter(Boolean)

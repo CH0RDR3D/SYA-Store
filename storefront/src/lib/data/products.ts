@@ -133,7 +133,7 @@ export const listProducts = async ({
       offset,
       region_id: region.id,
       fields:
-        "*variants.calculated_price,+variants.inventory_quantity,*variants.images,*variants.options,+metadata,+tags,*variants.prices,*categories,+collection_id,*collection",
+        "*,*variants.calculated_price,+variants.inventory_quantity,*variants.images,*variants.options,+metadata,+tags,*variants.prices,*categories,+collection_id,*collection",
       ...backendQueryParams,
     })
 
@@ -376,7 +376,7 @@ export const getProductByHandle = async (
       region_id: regionId,
       limit: 1,
       fields:
-        "*variants.calculated_price,+variants.inventory_quantity,*variants.images,*variants.options,+metadata,+tags,*variants.prices,*collection,*categories,*images",
+        "*,*variants.calculated_price,+variants.inventory_quantity,*variants.images,*variants.options,+metadata,+tags,*variants.prices,*collection,*categories,*images",
     })
 
     return products?.[0] ?? null
@@ -406,7 +406,7 @@ export const getProductsById = async ({
     }
     url.searchParams.set(
       "fields",
-      "*variants.calculated_price,+variants.inventory_quantity,*variants.images,*variants.options,+metadata,+tags,*variants.prices,*categories"
+      "*,*variants.calculated_price,+variants.inventory_quantity,*variants.images,*variants.options,+metadata,+tags,*variants.prices,*categories"
     )
 
     try {

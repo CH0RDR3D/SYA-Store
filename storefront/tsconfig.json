@@ -1,4 +1,4 @@
-﻿{
+{
   "compilerOptions": {
     "target": "es5",
     "lib": ["dom", "dom.iterable", "esnext"],
@@ -32,6 +32,9 @@
     ".next",
     ".nyc_output",
     "coverage",
-    "jest-coverage"
+    "jest-coverage",
+    "**/*.spec.ts",
+    "**/*.test.ts",
+    "src/__tests__"
   ]
 }

@@ -102,21 +102,12 @@ export default function HeroBanner() {
     >
       {slides.map((slide, index) => {
         const isActive = index === current
-        // Only render active or adjacent slides to prevent GPU memory bloat on low-end devices
-        const isNear =
-          isActive ||
-          index === (current + 1) % slides.length ||
-          index === (current - 1 + slides.length) % slides.length
-
-        if (!isNear) {
-          return null
-        }
 
         return (
           <div
             key={slide.id}
             aria-hidden={!isActive}
-            className={`absolute inset-0 transition-opacity duration-700 ease-out ${
+            className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${
               isActive ? "opacity-100 z-10" : "opacity-0 z-0 pointer-events-none"
             }`}
           >
@@ -171,7 +162,7 @@ export default function HeroBanner() {
       <button
         onClick={prev}
         aria-label="Previous slide"
-        className="absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 z-20 w-10 h-10 flex items-center justify-center rounded-full bg-white/30 hover:bg-white/60 dark:bg-black/30 dark:hover:bg-black/60 text-[var(--text-primary)] border border-black/10 dark:border-white/20 backdrop-blur-sm transition"
+        className="absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 z-30 w-10 h-10 flex items-center justify-center rounded-full bg-white/30 hover:bg-white/60 dark:bg-black/30 dark:hover:bg-black/60 text-[var(--text-primary)] border border-black/10 dark:border-white/20 backdrop-blur-sm transition"
       >
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -181,14 +172,18 @@ export default function HeroBanner() {
       <button
         onClick={next}
         aria-label="Next slide"
-        className="absolute right-3 sm:right-4 top-1/2 -translate-y-1/2 z-20 w-10 h-10 flex items-center justify-center rounded-full bg-white/30 hover:bg-white/60 dark:bg-black/30 dark:hover:bg-black/60 text-[var(--text-primary)] border border-black/10 dark:border-white/20 backdrop-blur-sm transition"
+        className="absolute right-3 sm:right-4 top-1/2 -translate-y-1/2 z-30 w-10 h-10 flex items-center justify-center rounded-full bg-white/30 hover:bg-white/60 dark:bg-black/30 dark:hover:bg-black/60 text-[var(--text-primary)] border border-black/10 dark:border-white/20 backdrop-blur-sm transition"
       >
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
         </svg>
       </button>
 
-      <div className="absolute bottom-0 left-0 w-full h-24 sm:h-40 pointer-events-none" style={{ background: "linear-gradient(to top, var(--bg-base), transparent)" }} />
+      {/* Bottom fade — bleeds into section below */}
+      <div
+        className="absolute bottom-0 left-0 w-full h-24 sm:h-40 pointer-events-none z-20"
+        style={{ background: "linear-gradient(to top, var(--bg-base), transparent)" }}
+      />
     </section>
   )
 }

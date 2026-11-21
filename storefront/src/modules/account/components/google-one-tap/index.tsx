@@ -37,6 +37,16 @@ export default function GoogleOneTap() {
           throw new Error(data.error || "Google authentication failed")
         }
 
+        // Instantly notify client components (Navbar, Drawer) with user profile
+        if (typeof window !== "undefined" && data.user) {
+          try {
+            window.localStorage.setItem("sya_user", JSON.stringify(data.user))
+            window.dispatchEvent(
+              new CustomEvent("sya:auth", { detail: data.user })
+            )
+          } catch {}
+        }
+
         // Navigate or refresh smoothly
         if (pathname?.includes("/login") || pathname?.includes("/register")) {
           router.replace("/account")
@@ -53,10 +63,16 @@ export default function GoogleOneTap() {
   )
 
   useEffect(() => {
-    // 1. Skip if already authenticated in NextAuth
+    // 1. Skip if already authenticated in NextAuth or Medusa customer session exists
     if (nextAuthStatus === "authenticated") {
       return
     }
+
+    try {
+      if (typeof window !== "undefined" && window.localStorage.getItem("sya_user")) {
+        return
+      }
+    } catch {}
 
     // 2. Skip if already initialized on this component lifecycle
     if (isInitialized.current) {
@@ -92,9 +108,10 @@ export default function GoogleOneTap() {
           window.google.accounts.id.initialize({
             client_id: clientId,
             callback: handleCredentialResponse,
-            auto_select: true,
+            auto_select: false,
             cancel_on_tap_outside: false,
             itp_support: true,
+            use_fedcm_for_prompt: false,
           })
 
           window.google.accounts.id.prompt(
@@ -157,16 +174,7 @@ export default function GoogleOneTap() {
     return null
   }
 
-  // HTML API configuration element automatically recognized by accounts.google.com/gsi/client
-  return (
-    <div
-      id="g_id_onload"
-      data-client_id={clientId}
-      data-callback="handleGoogleOneTapResponse"
-      data-auto_select="true"
-      data-cancel_on_tap_outside="false"
-      data-itp_support="true"
-      style={{ display: "none" }}
-    />
-  )
+  // All GIS initialization and prompt orchestration is handled programmatically via JavaScript API above.
+  // Rendering a duplicate <div id="g_id_onload"> triggers simultaneous initialization causing FedCM conflicts.
+  return null
 }

@@ -72,6 +72,8 @@ export function useMedusaAuth() {
         if (userKey) {
           window.sessionStorage.removeItem(`medusa-auth-synced:${userKey}`)
         }
+        window.localStorage.removeItem("sya_user")
+        window.dispatchEvent(new CustomEvent("sya:auth", { detail: null }))
       }
       await nextAuthSignOut({ callbackUrl: "/account" })
     } catch (err) {

@@ -37,6 +37,15 @@ const ProductInfo = ({ product }: ProductInfoProps) => {
             {getProductSubtitle(product)}
           </Text>
         )}
+
+        {product.description && (
+          <div
+            className="text-sm text-[var(--text-secondary)] whitespace-pre-line leading-relaxed mt-1"
+            data-testid="product-description"
+          >
+            {product.description}
+          </div>
+        )}
       </div>
     </div>
   )

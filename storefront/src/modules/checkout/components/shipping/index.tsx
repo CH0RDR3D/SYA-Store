@@ -191,12 +191,12 @@ const Shipping: React.FC<ShippingProps> = ({
       deliveryMethod === "pickup"
         ? { is_pickup: true }
         : {
-            distance_km: estimate?.distance_km ?? 3.5,
-            yango_cost: estimate?.yango_cost ?? 35,
-            lat: deliveryLocation?.lat,
-            lng: deliveryLocation?.lng,
-            breakdown: estimate?.breakdown,
-          }
+          distance_km: estimate?.distance_km ?? 3.5,
+          yango_cost: estimate?.yango_cost ?? 35,
+          lat: deliveryLocation?.lat,
+          lng: deliveryLocation?.lng,
+          breakdown: estimate?.breakdown,
+        }
     const res = await setShippingMethod({
       cartId: cart.id,
       shippingMethodId: id,
@@ -517,14 +517,14 @@ const Shipping: React.FC<ShippingProps> = ({
                 <div className="flex-1">
                   <div className="flex items-center justify-between">
                     <span className="text-base-semi font-semibold text-ui-fg-base">
-                      Express Delivery
+                      Delivery Method
                     </span>
                     <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-rose-100 text-rose-700">
-                      Live Fare
+                      Auto Fare
                     </span>
                   </div>
                   <Text className="text-xs text-ui-fg-subtle mt-1">
-                    Direct doorstep delivery computed live from Lusaka Hub.
+                    Direct doorstep delivery computed Automatically from our Lusaka Hub.
                   </Text>
                 </div>
               </button>
@@ -544,7 +544,7 @@ const Shipping: React.FC<ShippingProps> = ({
                 <div className="flex-1">
                   <div className="flex items-center justify-between">
                     <span className="text-base-semi font-semibold text-ui-fg-base">
-                      🏬 Store Pickup
+                      Store Pickup
                     </span>
                     <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700">
                       FREE
@@ -871,24 +871,47 @@ const Shipping: React.FC<ShippingProps> = ({
               </Text>
             </div>
           )}
-          {cart && !isPickupInMeta && (
-            <div className="flex flex-col">
-              <Text className="txt-medium-plus text-ui-fg-base mb-1 font-medium">
-                Fulfillment Method
-              </Text>
-              <Text className="txt-medium text-ui-fg-subtle">
-                🚗 Express Delivery
-                {(cart.metadata as any)?.distance_km ? ` (${(cart.metadata as any).distance_km} km, ~${(cart.metadata as any).duration_text || "15 mins"})` : ""}
-                {" — "}
-                <span className="font-semibold text-ui-fg-base">
-                  {convertToLocale({
-                    amount: (cart.metadata as any)?.yango_cost ?? selectedShippingMethod?.amount ?? 35,
-                    currency_code: currencyCode,
-                  })}
-                </span>
-              </Text>
-            </div>
-          )}
+          {cart && !isPickupInMeta && (() => {
+            // Resolve the shipping method name dynamically from cart data.
+            // Priority: cart.shipping_methods[0].name → selectedShippingMethod.name → "Delivery"
+            const resolvedShippingMethod = cart.shipping_methods?.at(-1)
+            const shippingLabel =
+              resolvedShippingMethod?.name ||
+              selectedShippingMethod?.name ||
+              "Delivery"
+
+            console.debug(
+              "[Shipping Summary] resolved label:",
+              shippingLabel,
+              "| cart.shipping_methods:",
+              cart.shipping_methods?.map((m) => ({ id: m.id, name: (m as any).name }))
+            )
+
+            return (
+              <div className="flex flex-col">
+                <Text className="txt-medium-plus text-ui-fg-base mb-1 font-medium">
+                  Fulfillment Method
+                </Text>
+                <Text className="txt-medium text-ui-fg-subtle">
+                  🚗 {shippingLabel}
+                  {(cart.metadata as any)?.distance_km
+                    ? ` (${(cart.metadata as any).distance_km} km, ~${(cart.metadata as any).duration_text || "15 mins"})`
+                    : ""}
+                  {" — "}
+                  <span className="font-semibold text-ui-fg-base">
+                    {convertToLocale({
+                      amount:
+                        (cart.metadata as any)?.yango_cost ??
+                        resolvedShippingMethod?.total ??
+                        selectedShippingMethod?.amount ??
+                        35,
+                      currency_code: currencyCode,
+                    })}
+                  </span>
+                </Text>
+              </div>
+            )
+          })()}
         </div>
       )}
       <Divider className="mt-6" />

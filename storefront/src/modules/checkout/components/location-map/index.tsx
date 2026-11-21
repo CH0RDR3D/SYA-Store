@@ -40,7 +40,7 @@ type LocationMapProps = {
 
 declare global {
   interface Window {
-    google: any
+    google?: any
     L: any
     __googleMapsCheckoutScriptLoaded?: boolean
     gm_authFailure?: () => void

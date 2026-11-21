@@ -26,7 +26,7 @@ const fetchProductByHandle = async (
   url.searchParams.set("limit", "1")
   url.searchParams.set(
     "fields",
-    "*variants.calculated_price,+variants.inventory_quantity,*variants.images,*variants.options,+metadata,+tags,*variants.prices,*collection,*categories,*images"
+    "*,*variants.calculated_price,+variants.inventory_quantity,*variants.images,*variants.options,+metadata,+tags,*variants.prices,*collection,*categories,*images"
   )
 
   try {

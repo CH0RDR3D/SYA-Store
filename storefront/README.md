@@ -7,7 +7,7 @@
 </h1>
 
 <p align="center">
-  A modern, scalable ecommerce platform built with Next.js, React, TypeScript, and Medusa.
+  A modern, scalable ecommerce platform built with Next.js 15, React 19, TypeScript, Tailwind CSS, and Medusa v2.
 </p>
 
 <p align="center">
@@ -22,63 +22,77 @@ SYA Storefront is the customer-facing ecommerce application powering the SYA Onl
 
 ### Tech Stack
 
-- Next.js 14
-- React
-- TypeScript
-- Tailwind CSS
-- Medusa Backend
-- Stripe & PayPal Payments
-- MeiliSearch / Algolia Search
-- AWS S3 / Cloudflare R2 / MinIO Storage
-
-### Key Features
-
-#### Ecommerce
-
-- Product Catalog
-- Product Detail Pages
-- Category & Collection Browsing
-- Advanced Search
-- Shopping Cart
-- Secure Checkout
-- Customer Accounts
-- Order Tracking & History
-- Wishlist Support
-- Multi-Region Commerce
-
-#### Performance
-
-- Server Components
-- App Router
-- Streaming & Suspense
-- Static Generation
-- Optimized Image Loading
-- SEO Optimization
-
-#### Integrations
-
-- Stripe Payments
-- PayPal Payments
-- MeiliSearch
-- Algolia Search
-- S3 Compatible Storage
+- **Next.js 15 (App Router)**
+- **React 19**
+- **TypeScript**
+- **Tailwind CSS & Medusa UI**
+- **Medusa v2 Commerce Backend**
+- **NextAuth & Google One Tap Integration**
+- **Stripe & Lenco Payments**
+- **Google Maps Places API**
+- **MeiliSearch**
+- **S3-Compatible Media Storage (Railway, AWS S3, Cloudflare R2, MinIO)**
 
 ---
 
-## Prerequisites
+### Key Features
 
-Before running the storefront, ensure you have:
+#### Commerce & Shopping Experience
+- Dynamic Product Catalog & Real-Time Search
+- Responsive Category Carousel & Collections Showcase
+- Comprehensive Product Detail Pages with specifications & full descriptions
+- Shopping Cart & Cart Transfer on authentication
+- Smart Checkout Auto-Fill (prioritizes default address and recent successful orders)
+- Progressive Disclosure for optional checkout fields (Company, Address Line 2)
+- Multi-Region Commerce & Dynamic Shipping Option mapping
+
+#### Customer Identity & Account
+- Google One Tap & Google OAuth authentication
+- Reactive Navbar account display (`"Hi, {firstName}"`)
+- Interactive Account Dropdown menu:
+  - Profile header with verified customer badge
+  - Quick access to **My Account**, **My Orders**, and **Saved Addresses**
+  - Instant dual-session Sign Out (NextAuth + Medusa tokens)
+
+#### Performance & Design
+- React Server Components & Streaming Suspense
+- Optimized image delivery & cross-fade hero banner
+- Theme-aware styling (dark & light modes)
+- Fully accessible keyboard navigation and ARIA attributes
+
+---
+
+## Getting Started
+
+### Prerequisites
 
 - Node.js 20+
-- Medusa Backend running
-- PostgreSQL configured
-- Package manager (npm, yarn, or pnpm)
+- Medusa v2 Backend running
+- Package manager (`pnpm` or `npm`)
 
-### Backend Setup
-
-Start a Medusa backend:
+### Setup
 
 ```bash
-npx create-medusa-app@latest
+# Install dependencies
+pnpm install # or npm install
 
-## Designed by ChordRED Innovations
+# Copy environment variables
+cp .env.local.template .env.local
+
+# Run development server
+pnpm dev # or npm run dev
+```
+
+Open [http://localhost:3000](http://localhost:3000) to view the application.
+
+---
+
+## Type Checking & Build
+
+```bash
+# Type-check TypeScript files
+npx tsc --noEmit --skipLibCheck
+
+# Production build
+pnpm build
+```
