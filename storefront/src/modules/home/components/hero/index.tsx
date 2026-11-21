@@ -3,57 +3,57 @@
 import React, { useState, useEffect, useCallback, useRef } from "react"
 import Image from "next/image"
 import Link from "next/link"
-import hero1 from "../../../../assets/images/hero/hero1.webp"
-import hero2 from "../../../../assets/images/hero/hero2.webp"
-import hero3 from "../../../../assets/images/hero/hero3.webp"
-import hero4 from "../../../../assets/images/hero/hero4.webp"
-import hero5 from "../../../../assets/images/hero/hero5.webp"
+import hero1 from "../../../../assets/images/hero/blackfriday-hero1.webp"
+import hero2 from "../../../../assets/images/hero/blackfriday-hero2.webp"
+import hero3 from "../../../../assets/images/hero/blackfriday-hero3.webp"
+import hero4 from "../../../../assets/images/hero/blackfriday-hero4.webp"
+import hero5 from "../../../../assets/images/hero/blackfriday-hero5.webp"
 
 const slides = [
   {
     id: 1,
-    title: "Signature Collection",
-    subtitle: "Timeless pieces. Curated with purpose.",
+    title: "Discover Something Different",
+    subtitle: "Handpicked finds that bring style and function together.",
     image: hero1,
     cta: "Discover Now",
     link: "/store",
-    tag: "New Season",
+    tag: "Just Landed",
   },
   {
     id: 2,
-    title: "Swift Checkout",
-    subtitle: "From cart to door — effortlessly fast.",
+    title: "Shop Without the Wait",
+    subtitle: "The products you love, delivered with ease.",
     image: hero2,
     cta: "Start Shopping",
     link: "/store",
-    tag: "Featured",
+    tag: "Hot Right Now",
   },
   {
     id: 3,
-    title: "Crafted for Moments",
-    subtitle: "Products built for experiences that matter.",
+    title: "Everyday Essentials, Elevated",
+    subtitle: "Designed to make daily living a little better.",
     image: hero3,
     cta: "Explore Range",
     link: "/store",
-    tag: "Top Picks",
+    tag: "Worth a Look",
   },
   {
     id: 4,
-    title: "Bold. Original.",
-    subtitle: "Push boundaries with every purchase.",
+    title: "Made for Modern Living",
+    subtitle: "Smart choices for homes that never stand still.",
     image: hero4,
     cta: "Shop Now",
     link: "/store",
-    tag: "Trending",
+    tag: "Made to Stand Out",
   },
   {
     id: 5,
-    title: "Limited Edition",
-    subtitle: "Exclusive pieces for the discerning collector.",
+    title: "Find Your Next Favourite",
+    subtitle: "Unique products you'll keep coming back to.",
     image: hero5,
     cta: "Shop Now",
     link: "/store",
-    tag: "New Arrivals",
+    tag: "Rare Find",
   }
 ]
 
@@ -107,18 +107,16 @@ export default function HeroBanner() {
           <div
             key={slide.id}
             aria-hidden={!isActive}
-            className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${
-              isActive ? "opacity-100 z-10" : "opacity-0 z-0 pointer-events-none"
-            }`}
+            className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${isActive ? "opacity-100 z-10" : "opacity-0 z-0 pointer-events-none"
+              }`}
           >
             <Image
               src={slide.image}
               alt={slide.title}
               fill
               sizes="100vw"
-              className={`object-cover transition-transform duration-1000 ease-out ${
-                isActive ? "scale-100" : "scale-[1.02]"
-              }`}
+              className={`object-cover transition-transform duration-1000 ease-out ${isActive ? "scale-100" : "scale-[1.02]"
+                }`}
               priority={index === 0}
               loading={index === 0 ? "eager" : "lazy"}
             />
