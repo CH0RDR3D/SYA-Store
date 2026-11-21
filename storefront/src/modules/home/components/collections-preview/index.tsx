@@ -5,7 +5,6 @@ import Link from "next/link"
 import Image from "next/image"
 import type { HttpTypes } from "@medusajs/types"
 import { convertToLocale } from "@lib/util/money"
-import { Span } from "next/dist/trace";
 
 interface CollectionsPreviewProps {
   collections?: HttpTypes.StoreCollection[]
@@ -137,8 +136,8 @@ function DynamicProductCardSlot({
   const categoryTitle =
     currentProduct.categories?.[0]?.name || collectionTitle
 
-  const totalCycleSteps = numProducts > 1 ? numProducts : productImages.length
-  const currentStep = numProducts > 1 ? activeProductIdx : activeImageIdx
+  const totalCycleSteps = productImages.length
+  const currentStep = isSlotHovered && productImages.length > 1 ? 1 : 0
 
   return (
     <Link
