@@ -8,7 +8,7 @@ import CookieConsentBanner from "@modules/common/components/cookie-consent"
 import GoogleOneTap from "@modules/account/components/google-one-tap"
 
 const BASE_URL = getBaseURL()
-const GTM_ID = "GTM-P9N3JSM4"
+const GTM_ID = "GTM-TN8JTCBP"
 
 export const metadata: Metadata = {
   metadataBase: new URL(BASE_URL),
